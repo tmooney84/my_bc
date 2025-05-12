@@ -6,7 +6,7 @@
 
 typedef struct Qnode{
     char *token;
-    struct Node *next;
+    struct Qnode *next;
 }Qnode;
 
 typedef struct Queue{

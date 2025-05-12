@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <stdio.h>
+#include "utils.h"
 
 void alloc_error()
 {

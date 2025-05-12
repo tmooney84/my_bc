@@ -7,10 +7,13 @@ Qnode *create_qnode(char *token)
     if(!node)
     {
         alloc_error();
-        return -1;
+        return NULL;
     }
-    my_strncpy(node->token, token, sizeof(token));
+    
     node->next = NULL;
+    node->token = NULL;
+
+    my_strncpy(node->token, token, sizeof(token));
 
     return node;
 }
@@ -23,11 +26,13 @@ Queue *create_queue()
         alloc_error();
         return NULL;
     }
+
+    return q;
 }
 
 int is_q_empty(Queue *q)
 {
-    return q->front = NULL;
+    return q->front == NULL? 1 : 0;
 }
 
 int enqueue(Queue *q, char *new_token)

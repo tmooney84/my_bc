@@ -2,6 +2,7 @@
 #define UTILS_H
 
 #include <stddef.h>
+#include <stdio.h>
 
 void *my_memset(void *str, int c, size_t n);
 char *my_strncpy(char *dst, const char *src, size_t n);

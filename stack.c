@@ -1,15 +1,75 @@
 #include <stdlib.h>
 #include "stack.h"
+#include "utils.h"
 
 Snode *create_snode(char *token)
 {
+    Snode *new_node = (Snode *)malloc(sizeof(Snode));
+    if(!new_node)
+    {
+        alloc_error();
+        return NULL;
+    }
+    new_node->next = NULL;
+    new_node->token = NULL;
 
+    my_strncpy(new_node->token, token, sizeof(token));
+
+    return new_node;
 }
 
+Stack *create_stack()
+{
+    Stack *stack = (Stack *)malloc(sizeof(Stack));
+    if(!stack)
+    {
+        alloc_error();
+        return NULL;
+    }
 
+    stack->head = NULL;
 
-Stack *create_stack();
-int is_s_empty(Stack *stack);
-void push(Stack *stack, char *new_token);
-Snode *pop(Stack *stack);
-char *peek(Stack *stack);
+    return stack;
+}
+
+int is_s_empty(Stack *stack)
+{
+    return stack->head == NULL ? 1 : 0;
+}
+
+void push(Stack *stack, char *new_token)
+{
+    Snode *new_node = create_snode(new_token);
+    if(!new_node)
+    {
+        return;
+    }
+    new_node->next = stack->head;
+    stack->head = new_node;
+}
+
+Snode *pop(Stack *stack)
+{
+    if(is_s_empty(stack))
+    {
+        printf("Stack Overflow\n");
+        return NULL;
+    }
+
+    Snode *temp = stack->head;
+    stack->head = stack->head->next;
+
+    return temp;
+}
+
+char *peek(Stack *stack)
+{
+    if(is_s_empty(stack))
+    {
+        return stack->head->token;
+    }
+    else{
+        printf("Stack is empty");
+        return NULL;
+    }
+}

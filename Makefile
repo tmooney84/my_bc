@@ -3,7 +3,7 @@ CC      := gcc
 CFLAGS  := -Wall -Wextra -Werror -g
 
 # Target executable name
-TARGET  := my_blockchain
+TARGET  := my_bc
 
 # Source and object files
 SRC     := my_bc.c stack.c queue.c utils.c
