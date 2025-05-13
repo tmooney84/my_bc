@@ -108,6 +108,64 @@ void parse_string(char *string, char **parsed_tokens, int num_tokens)
     return;
 }
 
+Queue *process_to_rpn(char **tokens, int num_tokens)
+{
+    /*
+//build stack
+
+//build queue
+
+//test using tokens[i][0] is a number
+//if a number enqueue it
+
+//test using tokens[i][0] is one of the operators
+        //if operator check if stack empty, if empty push to stack
+        if stack not empty peek at top of stack and see if current operator 
+        is of lower precendence [may need to alter for ()???] than "peeked head",
+        remove peeked head and put it on the queue
+        otherwise if same or greater precedence, push the new operator to the stack
+
+        if tokens[i][0] is ')', you need to pop all the operators off the stack and enqueue
+        them one-by-one until ')' and then discard the two parentheses
+
+        ***double-check that this holds true for ((()))
+    //if no more symbols to read, check if anything left in the stack and add them one-by-one to 
+    the queue        
+
+*/
+
+/*
+edge cases:
+Example 00
+$>./my_bc "312/0"
+divide by zero
+$>
+Example 01
+$>./my_bc "321()"
+parse error
+$>
+Example 02
+$>./my_bc "-(-((-4)+-6))"
+-10
+$>
+
+*/
+}
+
+
+void evaluate_rpn(rpn_queue)
+{
+/*    
+edge case examples:
+if 1 and - are left, should have that evaluate just the right value
+
+printf("divide by zero\n");
+printf("parse error\n");
+
+    */
+
+    }
+
 int main(int argc, char **argv)
 {
     if (argc != 2)
@@ -159,6 +217,10 @@ int main(int argc, char **argv)
     {
         printf("infix_tokens[%d]: %s\n", i, infix_tokens[i]);
     }
+
+    Queue * rpn_queue = process_to_rpn(infix_tokens, num_tokens);
+
+    evaluate_rpn(rpn_queue);
 
 
 
