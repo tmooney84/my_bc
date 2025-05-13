@@ -1,6 +1,8 @@
 #include "utils.h"
 #include "queue.h"
 
+#define PS_SIZE 128
+
 Qnode *create_qnode(char *token)
 {
     Qnode *node = (Qnode *)malloc(sizeof(Qnode));
@@ -11,9 +13,14 @@ Qnode *create_qnode(char *token)
     }
     
     node->next = NULL;
-    node->token = NULL;
+    node->token = (char *)malloc(PS_SIZE * sizeof(char));
+    if(!node->token)
+    {
+        alloc_error();
+        return NULL;
+    }
 
-    my_strncpy(node->token, token, sizeof(token));
+    my_strncpy(node->token, token, PS_SIZE - 1);
 
     return node;
 }
@@ -76,7 +83,7 @@ Qnode *dequeue(Queue *q)
     return temp;
 }
 
-void printQueue(Queue *q)
+void print_queue(Queue *q)
 {
     if(is_q_empty(q))
     {
@@ -88,7 +95,7 @@ void printQueue(Queue *q)
     
     while(temp != NULL)
     {
-        printf("%s", temp->token);
+        printf(" %s", temp->token);
         temp = temp->next;
     }
 

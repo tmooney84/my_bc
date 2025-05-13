@@ -7,7 +7,6 @@
 #include "stack.h"
 #include "queue.h"
 
-
 #define PS_SIZE 128
 #define NUM_ASCII_CHAR 128
 
@@ -110,17 +109,53 @@ void parse_string(char *string, char **parsed_tokens, int num_tokens)
 
 Queue *process_to_rpn(char **tokens, int num_tokens)
 {
+    // build stack
+    Stack *operators_stack = create_stack();
+    if (!operators_stack)
+    {
+        alloc_error();
+        return NULL;
+    }
+
+    printf("stack status: %d\n", is_s_empty(operators_stack));
+
+    // build queue
+    Queue *rpn_queue = create_queue();
+    if (!rpn_queue)
+    {
+        alloc_error();
+        return NULL;
+    }
+
+    printf("queue status: %d\n", is_q_empty(rpn_queue));
+
+    // test using tokens[i][0] is a number
+    // if a number enqueue it
+
+    for (int i = 0; i < num_tokens; i++)
+    {
+        if (tokens[i][0] >= '0' && tokens[i][0] <= '9')
+        {
+            enqueue(rpn_queue, tokens[i]);
+            
+        }
+
+        // {
+        //     push(operators_stack, tokens[i]);
+        //     printf("top of stack: %s\n", peek(operators_stack));
+        // }
+            print_queue(rpn_queue);
+
+        if (tokens[i][0] == '+' || tokens[i][0] == '-' || tokens[i][0] == '%' || tokens[i][0] == '*' || tokens[i][0] == '/' || tokens[i][0] == '(' || tokens[i][0] == ')')
+        {
+            
+        }
+    }
+
     /*
-//build stack
-
-//build queue
-
-//test using tokens[i][0] is a number
-//if a number enqueue it
-
 //test using tokens[i][0] is one of the operators
         //if operator check if stack empty, if empty push to stack
-        if stack not empty peek at top of stack and see if current operator 
+        if stack not empty peek at top of stack and see if current operator
         is of lower precendence [may need to alter for ()???] than "peeked head",
         remove peeked head and put it on the queue
         otherwise if same or greater precedence, push the new operator to the stack
@@ -129,33 +164,38 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
         them one-by-one until ')' and then discard the two parentheses
 
         ***double-check that this holds true for ((()))
-    //if no more symbols to read, check if anything left in the stack and add them one-by-one to 
-    the queue        
+    //if no more symbols to read, check if anything left in the stack and add them one-by-one to
+    the queue
 
 */
 
-/*
-edge cases:
-Example 00
-$>./my_bc "312/0"
-divide by zero
-$>
-Example 01
-$>./my_bc "321()"
-parse error
-$>
-Example 02
-$>./my_bc "-(-((-4)+-6))"
--10
-$>
 
-*/
+
+    /*
+    edge cases:
+    Example 00
+    $>./my_bc "312/0"
+    divide by zero
+    $>
+    Example 01
+    $>./my_bc "321()"
+    parse error
+    $>
+    Example 02
+    $>./my_bc "-(-((-4)+-6))"
+    -10
+    $>
+
+    */
+
+
+    //***temporary return */
+    return NULL;
 }
 
-
-void evaluate_rpn(rpn_queue)
-{
-/*    
+// void evaluate_rpn(rpn_queue)
+//{
+/*
 edge case examples:
 if 1 and - are left, should have that evaluate just the right value
 
@@ -164,7 +204,7 @@ printf("parse error\n");
 
     */
 
-    }
+//   }
 
 int main(int argc, char **argv)
 {
@@ -177,10 +217,8 @@ int main(int argc, char **argv)
     // count number of tokens in string
     int num_tokens = count_tokens(argv[1]);
 
-    printf("Num tokens: %d", num_tokens);
+    printf("Num tokens: %d\n", num_tokens);
 
-
-    
     // create infix_tokens array
     char **infix_tokens = (char **)malloc(num_tokens * sizeof(char *));
     if (!infix_tokens)
@@ -211,19 +249,20 @@ int main(int argc, char **argv)
 
     // need to parse input string into array of tokens
     parse_string(argv[1], infix_tokens, num_tokens);
-    
-    //test printing
-    for(int i = 0; i < num_tokens; i++)
+
+    // test printing
+    for (int i = 0; i < num_tokens; i++)
     {
         printf("infix_tokens[%d]: %s\n", i, infix_tokens[i]);
     }
 
-    Queue * rpn_queue = process_to_rpn(infix_tokens, num_tokens);
+    // Queue * rpn_queue = process_to_rpn(infix_tokens, num_tokens);
 
-    evaluate_rpn(rpn_queue);
+    process_to_rpn(infix_tokens, num_tokens);
 
-
+    // evaluate_rpn(rpn_queue);
 
     // free and cleanup stuff
+    // free infix_tokens here
     return 0;
 }

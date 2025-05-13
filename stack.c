@@ -2,6 +2,9 @@
 #include "stack.h"
 #include "utils.h"
 
+#include "string.h"
+#define PS_SIZE 128
+
 Snode *create_snode(char *token)
 {
     Snode *new_node = (Snode *)malloc(sizeof(Snode));
@@ -11,9 +14,17 @@ Snode *create_snode(char *token)
         return NULL;
     }
     new_node->next = NULL;
-    new_node->token = NULL;
 
-    my_strncpy(new_node->token, token, sizeof(token));
+    new_node->token = (char *)malloc(PS_SIZE * sizeof(char));
+    if(!new_node->token)    
+    {
+        alloc_error();
+        return NULL;
+    }
+    my_memset(new_node->token, '\0', PS_SIZE);
+    
+    ///**** */
+    my_strncpy(new_node->token, token, PS_SIZE - 1);
 
     return new_node;
 }
@@ -64,12 +75,12 @@ Snode *pop(Stack *stack)
 
 char *peek(Stack *stack)
 {
-    if(is_s_empty(stack))
+    if(!is_s_empty(stack))
     {
         return stack->head->token;
     }
     else{
-        printf("Stack is empty");
+        printf("Stack is empty\n");
         return NULL;
     }
 }
