@@ -66,13 +66,13 @@ int *create_priority_array()
     return priority;
 }
 
-void parse_string(char *string, char **parsed_tokens)
+void parse_string(char *string, char **parsed_tokens, int num_tokens)
 {
     int pa_idx = 0;
     int s_idx = 0;
     int i = 0;
 
-    while (string[i] != '\0')
+    while (string[i] != '\0' && s_idx < PS_SIZE - 2 && pa_idx < num_tokens)
     {
         if (string[i] == '+' || string[i] == '-' || string[i] == '%' || string[i] == '*' || string[i] == '/' || string[i] == '(' || string[i] == ')')
         {
@@ -88,14 +88,14 @@ void parse_string(char *string, char **parsed_tokens)
             s_idx++;
             i++;
 
-            while (string[i] >= '0' && string[i] <= '9' && i < PS_SIZE - 2)
+            while (string[i] >= '0' && string[i] <= '9')
             {
                 parsed_tokens[pa_idx][s_idx] = string[i];
                 s_idx++;
                 i++;
             }
 
-            parsed_tokens[s_idx] = '\0';
+            parsed_tokens[pa_idx][s_idx] = '\0';
             pa_idx++;
             s_idx = 0;
         }
@@ -122,7 +122,7 @@ int main(int argc, char **argv)
     printf("Num tokens: %d", num_tokens);
 
 
-    /*
+    
     // create infix_tokens array
     char **infix_tokens = (char **)malloc(num_tokens * sizeof(char *));
     if (!infix_tokens)
@@ -140,6 +140,7 @@ int main(int argc, char **argv)
             free(infix_tokens);
             return -1;
         }
+        my_memset(infix_tokens[i], '\0', PS_SIZE);
     }
 
     // create priority array
@@ -151,10 +152,13 @@ int main(int argc, char **argv)
     }
 
     // need to parse input string into array of tokens
-    parse_string(argv[1], infix_tokens);
-
-
-    */
+    parse_string(argv[1], infix_tokens, num_tokens);
+    
+    //test printing
+    for(int i = 0; i < num_tokens; i++)
+    {
+        printf("infix_tokens[%d]: %s\n", i, infix_tokens[i]);
+    }
 
 
 
