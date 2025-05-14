@@ -2,7 +2,6 @@
 #include "stack.h"
 #include "utils.h"
 
-#include "string.h"
 #define PS_SIZE 128
 
 Snode *create_snode(char *token)

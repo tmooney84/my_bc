@@ -127,6 +127,13 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
         return NULL;
     }
 
+    // build operator priority lookup
+    int *priority = create_priority_array();
+    if (!priority)
+    {
+        alloc_error();
+        return -1;
+    }
     printf("queue status: %d\n", is_q_empty(rpn_queue));
 
     // test using tokens[i][0] is a number
@@ -134,26 +141,136 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
 
     for (int i = 0; i < num_tokens; i++)
     {
-        if (tokens[i][0] >= '0' && tokens[i][0] <= '9')
+        char c = tokens[i][0];
+
+        if (c >= '0' && c <= '9')
         {
             enqueue(rpn_queue, tokens[i]);
-            
-        }
-
-        // {
-        //     push(operators_stack, tokens[i]);
-        //     printf("top of stack: %s\n", peek(operators_stack));
-        // }
             print_queue(rpn_queue);
-
-        if (tokens[i][0] == '+' || tokens[i][0] == '-' || tokens[i][0] == '%' || tokens[i][0] == '*' || tokens[i][0] == '/' || tokens[i][0] == '(' || tokens[i][0] == ')')
+        }
+        else if (c == '+' || c == '-' || c == '%' || c == '*' || c == '/' || c == '(' || c == ')')
         {
-            
+            int begin_par_counter = 0; //keeps track of sets of inner parentheses
+            int end_par_counter = 0; //keeps track of sets of outer parentheses
+
+            printf("top of stack: %s\n", peek(operators_stack));
+
+            // if stack empty
+            if (peek == NULL)
+            {
+                if(c != ')')
+                {
+                    push(operators_stack, tokens[i]);
+                }
+                else
+                {
+                    printf("parse error");
+                    //*** need to do frees */
+                    return NULL;
+                }
+
+                if(c == '(')
+                {
+                    begin_par_counter++;
+                }
+
+                printf("top of stack: %s\n", peek(operators_stack));
+            }
+
+            // peek to see operator on top of the stack
+            else
+            {
+                // current operator of lower precedence? ... remember ()
+                char *top = peek(operators_stack);
+                char top_op = top[0];
+                if (priority[c] >= priority[top_op] || (priority[top_op] == '(' ))
+                {
+                    push(operators_stack, tokens[i]);
+                }
+                else
+                {
+                    // if peeked head of higher precedence and is not ')'  and ')' ???
+                    if (c != ')')
+                    {
+                        // take top of stack and place it into the queue
+                        Snode *t = pop(operators_stack);
+                        char *top_to_queue = malloc(PS_SIZE * sizeof(char));
+                        if (!top_to_queue)
+                        {
+                            alloc_error();
+                            free(t);
+                            //***need to free queue and stack ... may need to make functions */
+                            return NULL;
+                        }
+                        my_memset(top_to_queue, '\0', PS_SIZE);
+
+                        my_strncpy(top_to_queue, t->token, PS_SIZE - 1);
+
+                        enqueue(rpn_queue, top_to_queue);
+
+                        // add tokens[i] to stack
+                        push(operators_stack, tokens[i]);
+                        printf("top of stack: %s\n", peek(operators_stack));
+                    }
+
+                    //***what happens if the top of the stack is ')' */
+
+                    // ')'
+                    else if (c == ')')
+                    {
+                        // pop top and place in queue until '('
+                        // *** need to count inner () to make sure those are
+                        // accounted for
+
+                        Snode *temp_snode = pop(operators_stack);
+                        if (!temp_snode)
+                        {
+                            alloc_error();
+                            return NULL;
+                        }
+                        free(temp_snode);
+                        temp_snode = NULL;
+
+                        temp_snode = peek(operators_stack);
+                        if (temp_snode->token[0] == '(')
+                        {
+                            printf("parse error\n");
+                            //**need to do frees */
+                            retun NULL;
+                        }
+
+                        char current_op = '\0';
+
+                        while (current_op != '(')
+                        {
+                            Snode *current_top = pop(operators_stack);
+                            char *top_op = malloc(PS_SIZE * sizeof(char));
+                            if (!top_op)
+                            {
+                                alloc_error();
+                                return NULL;
+                            }
+                            my_memset(top_op, '\0', PS_SIZE);
+
+                            my_strncpy(top_op, current_top->token, PS_SIZE);
+
+                            current_op = top_op[0];
+
+                            if (current_op != '(')
+                            {
+                                enqueue(rpn_queue, top_op);
+                            }
+                        }
+                    }
+                }
+            }
+
+            print_queue(rpn_queue);
         }
     }
 
     /*
-//test using tokens[i][0] is one of the operators
+    //test using tokens[i][0] is one of the operators
         //if operator check if stack empty, if empty push to stack
         if stack not empty peek at top of stack and see if current operator
         is of lower precendence [may need to alter for ()???] than "peeked head",
@@ -167,9 +284,7 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
     //if no more symbols to read, check if anything left in the stack and add them one-by-one to
     the queue
 
-*/
-
-
+    */
 
     /*
     edge cases:
@@ -188,8 +303,11 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
 
     */
 
-
     //***temporary return */
+
+    // free stuff
+    free(priority);
+
     return NULL;
 }
 
@@ -239,14 +357,6 @@ int main(int argc, char **argv)
         my_memset(infix_tokens[i], '\0', PS_SIZE);
     }
 
-    // create priority array
-    int *priority = create_priority_array();
-    if (!priority)
-    {
-        alloc_error();
-        return -1;
-    }
-
     // need to parse input string into array of tokens
     parse_string(argv[1], infix_tokens, num_tokens);
 
@@ -256,7 +366,7 @@ int main(int argc, char **argv)
         printf("infix_tokens[%d]: %s\n", i, infix_tokens[i]);
     }
 
-    // Queue * rpn_queue = process_to_rpn(infix_tokens, num_tokens);
+    // Queue *rpn_queue = process_to_rpn(infix_tokens, num_tokens);
 
     process_to_rpn(infix_tokens, num_tokens);
 
