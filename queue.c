@@ -42,8 +42,17 @@ int is_q_empty(Queue *q)
     return q->front == NULL? 1 : 0;
 }
 
-int enqueue(Queue *q, char *new_token)
+int enqueue(Queue *q, char *token)
 {
+    char * new_token = (char *)malloc(PS_SIZE * sizeof(char));
+    if(!new_token)
+    {
+        alloc_error();
+        return -1;
+    }
+    my_memset(new_token, '\0', PS_SIZE);
+    my_strncpy(new_token, token, PS_SIZE);
+
     Qnode *new_node = create_qnode(new_token);
     if(!new_node)
     {

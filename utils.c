@@ -7,6 +7,11 @@ void alloc_error()
     printf("Unable to allocate memory.\n");
 }
 
+void parse_error()
+{
+    printf("parse error\n");
+}
+
 int my_strcmp(const char *s1, const char *s2)
 {
     for (int i = 0; s1[i] != '\0' || s2[i] != '\0'; i++)

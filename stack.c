@@ -7,7 +7,7 @@
 Snode *create_snode(char *token)
 {
     Snode *new_node = (Snode *)malloc(sizeof(Snode));
-    if(!new_node)
+    if (!new_node)
     {
         alloc_error();
         return NULL;
@@ -15,13 +15,13 @@ Snode *create_snode(char *token)
     new_node->next = NULL;
 
     new_node->token = (char *)malloc(PS_SIZE * sizeof(char));
-    if(!new_node->token)    
+    if (!new_node->token)
     {
         alloc_error();
         return NULL;
     }
     my_memset(new_node->token, '\0', PS_SIZE);
-    
+
     ///**** */
     my_strncpy(new_node->token, token, PS_SIZE - 1);
 
@@ -31,7 +31,7 @@ Snode *create_snode(char *token)
 Stack *create_stack()
 {
     Stack *stack = (Stack *)malloc(sizeof(Stack));
-    if(!stack)
+    if (!stack)
     {
         alloc_error();
         return NULL;
@@ -47,10 +47,19 @@ int is_s_empty(Stack *stack)
     return stack->head == NULL ? 1 : 0;
 }
 
-void push(Stack *stack, char *new_token)
+void push(Stack *stack, char *token)
 {
+    char *new_token = (char *)malloc(PS_SIZE * sizeof(char));
+    if (!new_token)
+    {
+        alloc_error();
+        return -1;
+    }
+    my_memset(new_token, '\0', PS_SIZE);
+    my_strncpy(new_token, token, PS_SIZE);
+
     Snode *new_node = create_snode(new_token);
-    if(!new_node)
+    if (!new_node)
     {
         return;
     }
@@ -60,7 +69,7 @@ void push(Stack *stack, char *new_token)
 
 Snode *pop(Stack *stack)
 {
-    if(is_s_empty(stack))
+    if (is_s_empty(stack))
     {
         printf("Stack Overflow\n");
         return NULL;
@@ -74,11 +83,12 @@ Snode *pop(Stack *stack)
 
 char *peek(Stack *stack)
 {
-    if(!is_s_empty(stack))
+    if (!is_s_empty(stack))
     {
         return stack->head->token;
     }
-    else{
+    else
+    {
         printf("Stack is empty\n");
         return NULL;
     }

@@ -54,8 +54,8 @@ int *create_priority_array()
 
     my_memset(priority, 0, NUM_ASCII_CHAR);
 
-    priority['('] = 3;
-    priority[')'] = 3;
+    // priority['('] = 3;
+    // priority[')'] = 3;
     priority['/'] = 2;
     priority['*'] = 2;
     priority['%'] = 2;
@@ -73,6 +73,7 @@ void parse_string(char *string, char **parsed_tokens, int num_tokens)
 
     while (string[i] != '\0' && s_idx < PS_SIZE - 2 && pa_idx < num_tokens)
     {
+        // maybe break up into parentheses and main operators
         if (string[i] == '+' || string[i] == '-' || string[i] == '%' || string[i] == '*' || string[i] == '/' || string[i] == '(' || string[i] == ')')
         {
             parsed_tokens[pa_idx][0] = string[i];
@@ -109,32 +110,36 @@ void parse_string(char *string, char **parsed_tokens, int num_tokens)
 
 Queue *process_to_rpn(char **tokens, int num_tokens)
 {
-    // build stack
+    if (!tokens)
+    {
+        printf("Error with tokens list");
+        return NULL;
+    }
+
     Stack *operators_stack = create_stack();
     if (!operators_stack)
     {
         alloc_error();
         return NULL;
     }
-
     printf("stack status: %d\n", is_s_empty(operators_stack));
 
-    // build queue
     Queue *rpn_queue = create_queue();
     if (!rpn_queue)
     {
+        // free stack
         alloc_error();
         return NULL;
     }
+    printf("queue status: %d\n", is_q_empty(rpn_queue));
 
-    // build operator priority lookup
     int *priority = create_priority_array();
     if (!priority)
     {
+        // free stack and queue
         alloc_error();
         return -1;
     }
-    printf("queue status: %d\n", is_q_empty(rpn_queue));
 
     // test using tokens[i][0] is a number
     // if a number enqueue it
@@ -148,143 +153,157 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
             enqueue(rpn_queue, tokens[i]);
             print_queue(rpn_queue);
         }
+
+        //***need to account for 6+-5 not sure if here or in evaluate_rpn ******************************//
         else if (c == '+' || c == '-' || c == '%' || c == '*' || c == '/' || c == '(' || c == ')')
         {
-            int begin_par_counter = 0; //keeps track of sets of inner parentheses
-            int end_par_counter = 0; //keeps track of sets of outer parentheses
+            // int par_counter = 0; // keeps track of parentheses
+            // the counter has to be positive or zero during stack
+            // counter != -1
+            // after everything is done counter needs to be zero
+            // if(c == ')' && tokens[i + 1][0] == '(' && i < num_tokens - 1)
+            // if (par_counter < 0)
+            // {
+            //     printf("parsing error");
+            //     // free queue, free stack, free priority array
+            // }
 
             printf("top of stack: %s\n", peek(operators_stack));
 
             // if stack empty
-            if (peek == NULL)
+            if (is_s_empty(operators_stack))
             {
-                if(c != ')')
+                if (c != ')')
                 {
                     push(operators_stack, tokens[i]);
                 }
                 else
                 {
-                    printf("parse error");
+                    parse_error();
                     //*** need to do frees */
                     return NULL;
                 }
 
-                if(c == '(')
-                {
-                    begin_par_counter++;
-                }
+                // if (c == '(')
+                // {
+                //    // par_counter++;
+                // }
 
                 printf("top of stack: %s\n", peek(operators_stack));
             }
 
-            // peek to see operator on top of the stack
+            // operators are on the stack
             else
             {
-                // current operator of lower precedence? ... remember ()
                 char *top = peek(operators_stack);
                 char top_op = top[0];
-                if (priority[c] >= priority[top_op] || (priority[top_op] == '(' ))
+
+                // cannot have "()" with no contents inside or ")("
+                if ((c == ')' && top_op == '(') || (c == '(' && top_op == ')'))
+                {
+                    parse_error();
+                    return NULL;
+                }
+                else if (c == '(')
+                {
+                    push(operators_stack, tokens[i]);
+                    //  par_counter++;
+                }
+
+                // pop stack to queue until '(' reached
+                // may not need to use par_counter could just have
+                else if (c == ')') //&& par_counter > 0
+                {
+                    Snode *top = pop(operators_stack);
+                    char *popped_top = top->token;
+
+                    // run until '(' found, if not found, parse error
+                    while (popped_top[0] != '(')
+                    {
+                        enqueue(rpn_queue, popped_top);
+                        if (is_s_empty(operators_stack)) // || popped_top[0] == ')'
+                        {
+                            parse_error();
+                            // free stack, free queue
+                            return NULL;
+                        }
+                        //*************create free_snode fn *************************/
+                        // free popped node
+                        top->next = NULL;
+                        free(top->token);
+                        free(top);
+                        top = NULL;
+
+                        top = pop(operators_stack);
+                        popped_top = top->token;
+                    }
+
+                    //*************create free_snode fn *************************/
+                    // free top to get rid of bottom '('
+                    top->next = NULL;
+                    free(top->token);
+                    free(top);
+                    top = NULL;
+
+                    // and need to remember freeing the tokens list in main
+
+                    // par_counter--;
+                }
+
+                // current operator of greater precedence
+                else if (priority[c] >= priority[top_op])
                 {
                     push(operators_stack, tokens[i]);
                 }
-                else
+                // current operator of lower precedence
+                else if (priority[c] < priority[top_op])
                 {
                     // if peeked head of higher precedence and is not ')'  and ')' ???
-                    if (c != ')')
-                    {
-                        // take top of stack and place it into the queue
-                        Snode *t = pop(operators_stack);
-                        char *top_to_queue = malloc(PS_SIZE * sizeof(char));
-                        if (!top_to_queue)
-                        {
-                            alloc_error();
-                            free(t);
-                            //***need to free queue and stack ... may need to make functions */
-                            return NULL;
-                        }
-                        my_memset(top_to_queue, '\0', PS_SIZE);
+                    // if (c != ')') //*** may not need
+                    //{
+                    // take top of stack and place it into the queue
+                    Snode *t = pop(operators_stack);
+                    enqueue(rpn_queue, t->token);
 
-                        my_strncpy(top_to_queue, t->token, PS_SIZE - 1);
+                    //*************create free_snode fn *************************/
+                    // free top to get rid of bottom '('
+                    t->next = NULL;
+                    free(t->token);
+                    free(t);
+                    t = NULL;
 
-                        enqueue(rpn_queue, top_to_queue);
-
-                        // add tokens[i] to stack
-                        push(operators_stack, tokens[i]);
-                        printf("top of stack: %s\n", peek(operators_stack));
-                    }
-
-                    //***what happens if the top of the stack is ')' */
-
-                    // ')'
-                    else if (c == ')')
-                    {
-                        // pop top and place in queue until '('
-                        // *** need to count inner () to make sure those are
-                        // accounted for
-
-                        Snode *temp_snode = pop(operators_stack);
-                        if (!temp_snode)
-                        {
-                            alloc_error();
-                            return NULL;
-                        }
-                        free(temp_snode);
-                        temp_snode = NULL;
-
-                        temp_snode = peek(operators_stack);
-                        if (temp_snode->token[0] == '(')
-                        {
-                            printf("parse error\n");
-                            //**need to do frees */
-                            retun NULL;
-                        }
-
-                        char current_op = '\0';
-
-                        while (current_op != '(')
-                        {
-                            Snode *current_top = pop(operators_stack);
-                            char *top_op = malloc(PS_SIZE * sizeof(char));
-                            if (!top_op)
-                            {
-                                alloc_error();
-                                return NULL;
-                            }
-                            my_memset(top_op, '\0', PS_SIZE);
-
-                            my_strncpy(top_op, current_top->token, PS_SIZE);
-
-                            current_op = top_op[0];
-
-                            if (current_op != '(')
-                            {
-                                enqueue(rpn_queue, top_op);
-                            }
-                        }
-                    }
+                    // add tokens[i] to stack
+                    push(operators_stack, tokens[i]);
+                    printf("top of stack: %s\n", peek(operators_stack));
+                    //}
                 }
             }
-
             print_queue(rpn_queue);
         }
     }
 
-    /*
-    //test using tokens[i][0] is one of the operators
-        //if operator check if stack empty, if empty push to stack
-        if stack not empty peek at top of stack and see if current operator
-        is of lower precendence [may need to alter for ()???] than "peeked head",
-        remove peeked head and put it on the queue
-        otherwise if same or greater precedence, push the new operator to the stack
+    //***at end if still ( at top of stack parsing error!!!... also go until end of stack if any remaining*/
+    while (!is_s_empty(operators_stack))
+    {
+        Snode *top = pop(operators_stack);
 
-        if tokens[i][0] is ')', you need to pop all the operators off the stack and enqueue
-        them one-by-one until ')' and then discard the two parentheses
+        if(top->token[0] == '(')
+        {
+            parse_error();
+            //free Snode *top
+            //free stack, queue, priority array 
+            return NULL;
+        }
 
-        ***double-check that this holds true for ((()))
-    //if no more symbols to read, check if anything left in the stack and add them one-by-one to
-    the queue
+        enqueue(rpn_queue, top->token);
 
-    */
+        //*************create free_snode fn *************************/
+        // free top to get rid of bottom '('
+        top->next = NULL;
+        free(top->token);
+        free(top);
+        top = NULL;
+    }
 
     /*
     edge cases:
@@ -366,9 +385,11 @@ int main(int argc, char **argv)
         printf("infix_tokens[%d]: %s\n", i, infix_tokens[i]);
     }
 
-    // Queue *rpn_queue = process_to_rpn(infix_tokens, num_tokens);
-
-    process_to_rpn(infix_tokens, num_tokens);
+    Queue *rpn_queue = process_to_rpn(infix_tokens, num_tokens);
+    if (rpn_queue == NULL)
+    {
+        return -1;
+    }
 
     // evaluate_rpn(rpn_queue);
 
