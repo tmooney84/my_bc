@@ -127,7 +127,7 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
     Queue *rpn_queue = create_queue();
     if (!rpn_queue)
     {
-        // free stack
+        free_stack(operators_stack);
         alloc_error();
         return NULL;
     }
@@ -136,9 +136,10 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
     int *priority = create_priority_array();
     if (!priority)
     {
-        // free stack and queue
+        free_stack(operators_stack);
+        free_queue(rpn_queue);
         alloc_error();
-        return -1;
+        return NULL;
     }
 
     // test using tokens[i][0] is a number
@@ -157,17 +158,6 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
         //***need to account for 6+-5 not sure if here or in evaluate_rpn ******************************//
         else if (c == '+' || c == '-' || c == '%' || c == '*' || c == '/' || c == '(' || c == ')')
         {
-            // int par_counter = 0; // keeps track of parentheses
-            // the counter has to be positive or zero during stack
-            // counter != -1
-            // after everything is done counter needs to be zero
-            // if(c == ')' && tokens[i + 1][0] == '(' && i < num_tokens - 1)
-            // if (par_counter < 0)
-            // {
-            //     printf("parsing error");
-            //     // free queue, free stack, free priority array
-            // }
-
             printf("top of stack: %s\n", peek(operators_stack));
 
             // if stack empty
@@ -180,7 +170,9 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
                 else
                 {
                     parse_error();
-                    //*** need to do frees */
+                    free_stack(operators_stack);
+                    free_queue(rpn_queue);
+                    free(priority); 
                     return NULL;
                 }
 
@@ -199,9 +191,12 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
                 char top_op = top[0];
 
                 // cannot have "()" with no contents inside or ")("
-                if ((c == ')' && top_op == '(') || (c == '(' && top_op == ')'))
+                if (( top_op == '(' && c == ')') || (top_op == ')' && c == '('))
                 {
                     parse_error();
+                    free_stack(operators_stack);
+                    free_queue(rpn_queue);
+                    free(priority); 
                     return NULL;
                 }
                 else if (c == '(')
@@ -218,64 +213,49 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
                     char *popped_top = top->token;
 
                     // run until '(' found, if not found, parse error
-                    while (popped_top[0] != '(')
+                    while (popped_top[0] != '(') //top != NULL &&
                     {
                         enqueue(rpn_queue, popped_top);
-                        if (is_s_empty(operators_stack)) // || popped_top[0] == ')'
+                        if (is_s_empty(operators_stack))
                         {
                             parse_error();
-                            // free stack, free queue
+                            free_stack(operators_stack);
+                            free_queue(rpn_queue);
+                            free(priority);
                             return NULL;
                         }
-                        //*************create free_snode fn *************************/
                         // free popped node
-                        top->next = NULL;
-                        free(top->token);
-                        free(top);
-                        top = NULL;
+                        free_snode(top);
 
                         top = pop(operators_stack);
                         popped_top = top->token;
                     }
 
-                    //*************create free_snode fn *************************/
                     // free top to get rid of bottom '('
-                    top->next = NULL;
-                    free(top->token);
-                    free(top);
-                    top = NULL;
-
+                    free_snode(top);
                     // and need to remember freeing the tokens list in main
 
                     // par_counter--;
                 }
 
                 // current operator of greater precedence
-                else if (priority[c] >= priority[top_op])
+                else if (priority[(int)c] >= priority[(int)top_op])     //c == '+' || c == '-' || c == '%' || c == '*' || c == '/'
                 {
                     push(operators_stack, tokens[i]);
                 }
                 // current operator of lower precedence
-                else if (priority[c] < priority[top_op])
+                else if (priority[(int)c] < priority[(int)top_op])
                 {
                     // if peeked head of higher precedence and is not ')'  and ')' ???
                     // if (c != ')') //*** may not need
-                    //{
                     // take top of stack and place it into the queue
                     Snode *t = pop(operators_stack);
                     enqueue(rpn_queue, t->token);
-
-                    //*************create free_snode fn *************************/
-                    // free top to get rid of bottom '('
-                    t->next = NULL;
-                    free(t->token);
-                    free(t);
-                    t = NULL;
+                    free_snode(t);
 
                     // add tokens[i] to stack
                     push(operators_stack, tokens[i]);
                     printf("top of stack: %s\n", peek(operators_stack));
-                    //}
                 }
             }
             print_queue(rpn_queue);
@@ -290,22 +270,25 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
         if(top->token[0] == '(')
         {
             parse_error();
-            //free Snode *top
-            //free stack, queue, priority array 
+            free_stack(operators_stack);
+            free_queue(rpn_queue);
+            free(priority);
             return NULL;
         }
 
         enqueue(rpn_queue, top->token);
 
-        //*************create free_snode fn *************************/
-        // free top to get rid of bottom '('
-        top->next = NULL;
-        free(top->token);
-        free(top);
-        top = NULL;
+        free_snode(top);
     }
 
-    /*
+    // free stuff
+    free_stack(operators_stack);
+    free(priority);
+
+    return rpn_queue;
+}
+
+/*
     edge cases:
     Example 00
     $>./my_bc "312/0"
@@ -321,14 +304,6 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
     $>
 
     */
-
-    //***temporary return */
-
-    // free stuff
-    free(priority);
-
-    return NULL;
-}
 
 // void evaluate_rpn(rpn_queue)
 //{
@@ -390,6 +365,8 @@ int main(int argc, char **argv)
     {
         return -1;
     }
+
+    print_queue(rpn_queue);
 
     // evaluate_rpn(rpn_queue);
 

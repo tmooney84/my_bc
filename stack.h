@@ -20,5 +20,7 @@ int is_s_empty(Stack *stack);
 void push(Stack *stack, char *new_token);
 Snode *pop(Stack *stack);
 char *peek(Stack *stack);
+void free_stack(Stack *stack);
+void free_snode(Snode *node);
 
 #endif

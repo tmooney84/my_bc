@@ -6,15 +6,15 @@
 Qnode *create_qnode(char *token)
 {
     Qnode *node = (Qnode *)malloc(sizeof(Qnode));
-    if(!node)
+    if (!node)
     {
         alloc_error();
         return NULL;
     }
-    
+
     node->next = NULL;
     node->token = (char *)malloc(PS_SIZE * sizeof(char));
-    if(!node->token)
+    if (!node->token)
     {
         alloc_error();
         return NULL;
@@ -28,7 +28,7 @@ Qnode *create_qnode(char *token)
 Queue *create_queue()
 {
     Queue *q = (Queue *)malloc(sizeof(Queue));
-    if(!q)
+    if (!q)
     {
         alloc_error();
         return NULL;
@@ -39,13 +39,13 @@ Queue *create_queue()
 
 int is_q_empty(Queue *q)
 {
-    return q->front == NULL? 1 : 0;
+    return q->front == NULL ? 1 : 0;
 }
 
 int enqueue(Queue *q, char *token)
 {
-    char * new_token = (char *)malloc(PS_SIZE * sizeof(char));
-    if(!new_token)
+    char *new_token = (char *)malloc(PS_SIZE * sizeof(char));
+    if (!new_token)
     {
         alloc_error();
         return -1;
@@ -54,37 +54,37 @@ int enqueue(Queue *q, char *token)
     my_strncpy(new_token, token, PS_SIZE);
 
     Qnode *new_node = create_qnode(new_token);
-    if(!new_node)
+    if (!new_node)
     {
         alloc_error();
         return -1;
     }
 
-    if(is_q_empty(q))
+    if (is_q_empty(q))
     {
         q->front = q->rear = new_node;
-        //print_queue(q);
+        // print_queue(q);
         return 1;
     }
 
     q->rear->next = new_node;
     q->rear = new_node;
-    //print_queue(q);
+    // print_queue(q);
 
     return 1;
 }
 
 Qnode *dequeue(Queue *q)
 {
-    if(is_q_empty(q))
+    if (is_q_empty(q))
     {
         return NULL;
     }
 
     Qnode *temp = q->front;
     q->front = q->front->next;
-    
-    if(q->front == NULL)
+
+    if (q->front == NULL)
     {
         q->rear = NULL;
     }
@@ -94,15 +94,15 @@ Qnode *dequeue(Queue *q)
 
 void print_queue(Queue *q)
 {
-    if(is_q_empty(q))
+    if (is_q_empty(q))
     {
         printf("Queue is empty");
         return;
     }
     Qnode *temp = q->front;
     printf("Current Queue: ");
-    
-    while(temp != NULL)
+
+    while (temp != NULL)
     {
         printf(" %s", temp->token);
         temp = temp->next;
@@ -110,4 +110,24 @@ void print_queue(Queue *q)
 
     printf("\n");
     return;
+}
+
+void free_queue(Queue *q)
+{
+    while (q->front != NULL)
+    {
+        Qnode *temp = q->front;
+        q->front = q->front->next;
+        free_qnode(temp);
+    }
+
+    free(q);
+}
+
+void free_qnode(Qnode *node)
+{
+    node->next = NULL;
+    free(node->token);
+    free(node);
+    node = NULL;
 }

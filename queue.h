@@ -20,5 +20,7 @@ int is_q_empty(Queue *q);
 int enqueue(Queue *q, char *new_token);
 Qnode *dequeue(Queue *q);
 void print_queue(Queue *q);
+void free_queue(Queue *q);
+void free_qnode(Qnode *node);
 
 #endif

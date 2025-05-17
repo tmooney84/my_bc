@@ -53,7 +53,7 @@ void push(Stack *stack, char *token)
     if (!new_token)
     {
         alloc_error();
-        return -1;
+        return;
     }
     my_memset(new_token, '\0', PS_SIZE);
     my_strncpy(new_token, token, PS_SIZE);
@@ -92,4 +92,23 @@ char *peek(Stack *stack)
         printf("Stack is empty\n");
         return NULL;
     }
+}
+
+
+void free_stack(Stack *stack){
+    while(is_s_empty(stack) == 0)
+    {
+       Snode *temp = pop(stack);
+        free_snode(temp);
+    }
+
+    free(stack);
+}
+
+void free_snode(Snode *node)
+{
+       node->next = NULL;
+       free(node->token);
+       free(node);
+       node = NULL;
 }
