@@ -45,9 +45,9 @@ int count_tokens(char *string)
 
 int find_next_sig_tok(char **tokens, int num_tokens, int idx)
 {
-    while(idx < num_tokens - 2)
+    while (idx < num_tokens - 2)
     {
-        if(tokens[idx + 1][0] == ' ')
+        if (tokens[idx + 1][0] == ' ')
         {
             idx++;
         }
@@ -132,8 +132,8 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
         return NULL;
     }
 
-    //if last token is '-' such as in "1 + 2 * 3 -"
-    if(tokens[num_tokens-1][0] == '-')
+    // if last token is '-' such as in "1 + 2 * 3 -"
+    if (tokens[num_tokens - 1][0] == '-')
     {
         parse_error();
         return NULL;
@@ -179,17 +179,16 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
         if (c >= '0' && c <= '9' && i < num_tokens - 1)
         {
             int next_sig_idx = find_next_sig_tok(tokens, num_tokens, i);
-           if(next_sig_idx == -1) 
+            if (next_sig_idx == -1)
             {
                 parse_error();
                 return NULL;
             }
-            else if(tokens[next_sig_idx][0] == '(')
+            else if (tokens[next_sig_idx][0] == '(')
             {
                 parse_error();
                 return NULL;
             }
-
         }
 
         else if (c == '+' || c == '-' || c == '%' || c == '*' || c == '/' || c == '(' || c == ')')
@@ -207,10 +206,10 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
                     parse_error();
                     free_stack(operators_stack);
                     free_queue(rpn_queue);
-                    free(priority); 
+                    free(priority);
                     return NULL;
                 }
-                    printf("top of stack: %s\n", peek(operators_stack));
+                printf("top of stack: %s\n", peek(operators_stack));
             }
 
             else
@@ -219,12 +218,12 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
                 char top_op = top[0];
 
                 // cannot have "()" with no contents inside or ")("
-                if (( top_op == '(' && c == ')') || (top_op == ')' && c == '('))
+                if ((top_op == '(' && c == ')') || (top_op == ')' && c == '('))
                 {
                     parse_error();
                     free_stack(operators_stack);
                     free_queue(rpn_queue);
-                    free(priority); 
+                    free(priority);
                     return NULL;
                 }
                 else if (c == '(')
@@ -233,13 +232,13 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
                 }
 
                 // pop stack to queue until '(' reached
-                else if (c == ')') 
+                else if (c == ')')
                 {
                     Snode *top = pop(operators_stack);
                     char *popped_top = top->token;
 
                     // run until '(' found, if not found, parse error
-                    while (popped_top[0] != '(') 
+                    while (popped_top[0] != '(')
                     {
                         enqueue(rpn_queue, popped_top);
                         if (is_s_empty(operators_stack))
@@ -262,7 +261,7 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
                 }
 
                 // current operator of greater precedence
-                else if (priority[(int)c] >= priority[(int)top_op])     
+                else if (priority[(int)c] >= priority[(int)top_op])
                 {
                     push(operators_stack, tokens[i]);
                 }
@@ -281,12 +280,12 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
         }
     }
 
-    //finish the rest of the stack
+    // finish the rest of the stack
     while (!is_s_empty(operators_stack))
     {
         Snode *top = pop(operators_stack);
 
-        if(top->token[0] == '(')
+        if (top->token[0] == '(')
         {
             parse_error();
             free_stack(operators_stack);
@@ -307,25 +306,6 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
     return rpn_queue;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /*
     edge cases:
     Example 00
@@ -343,8 +323,6 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
 
     */
 
-// void evaluate_rpn(rpn_queue)
-//{
 /*
 edge case examples:
 if 1 and - are left, should have that evaluate just the right value
@@ -352,9 +330,120 @@ if 1 and - are left, should have that evaluate just the right value
 printf("divide by zero\n");
 printf("parse error\n");
 
-    */
+*/
 
-//   }
+int parse_int(Qnode *node)
+{
+}
+
+void evaluate_rpn(Queue *rpn_queue)
+{
+    // create num_stack
+    Stack *num_stack = create_stack();
+    if (!num_stack)
+    {
+        alloc_error();
+        return -1;
+    }
+    while (is_q_empty(rpn_queue) == 0)
+    {
+        // first in the queue a number?
+        char c = rpn_queue->front->token[0];
+        while (c >= '0' && c <= '9')
+        {
+            // add number to stack
+            Qnode *num_node = dequeue(rpn_queue);
+            push(num_stack, num_node->token);
+            free_qnode(num_node);
+        }
+
+        // once operator evaluate
+        if (c == '+' || c == '-' || c == '%' || c == '*' || c == '/')
+        {
+            Qnode *op = dequeue(rpn_queue);
+            Snode *temp2 = pop(num_stack);
+            Snode *temp1 = pop(num_stack);
+
+            //**********************NEED TO IMPLEMENT parse_int*********************************/
+            int num2 = parse_int(temp2);
+            int num1 = parse_int(temp1);
+
+            switch (op->token[0])
+            {
+            case '+':
+                int result = num1 + num2;
+                //************************NEED TO IMPLEMENT int_to_string************/
+                char *s_result = int_to_string(result);
+                push(num_stack, s_result);
+                break;
+
+            case '-':
+                int result = num1 - num2;
+                char *s_result = int_to_string(result);
+                push(num_stack, s_result);
+                break;
+            case '*':
+                int result = num1 * num2;
+                char *s_result = int_to_string(result);
+                push(num_stack, s_result);
+                break;
+
+            case '/':
+                // remember divide by zero
+                if (num2 != 0)
+                {
+                    int result = num1 / num2;
+                    char *s_result = int_to_string(result);
+                    push(num_stack, s_result);
+                }
+                else
+                {
+                    printf("divide by zero\n");
+                    free_qnode(op);
+                    free_snode(temp2);
+                    free_snode(temp1);
+                    free_stack(num_stack);
+                    return;
+                }
+                break;
+            case '%':
+                int result = num1 % num2;
+                char *s_result = int_to_string(result);
+                push(num_stack, s_result);
+                break;
+
+            default:
+                printf("ERROR"); //*********************************???
+            }
+                   
+                    free_qnode(op);
+                    free_snode(temp2);
+                    free_snode(temp1);
+        }
+    }
+
+    // check if there is only a single snode on stack, pop it
+    // parse it and return the int answer
+    if (num_stack->head != NULL && num_stack->head->next == NULL)
+    {
+        Snode *answer_node = pop(num_stack);
+        //**********************NEED TO IMPLEMENT parse_int*********************************/
+        int answer = parse_int(answer_node);
+        free_snode(answer_node);
+        free_stack(num_stack);
+
+        return answer;
+    }
+    else
+    {
+        parse_error();
+        free_stack(num_stack);
+        return;
+    }
+
+    free_stack(num_stack);
+    return;
+}
 
 int main(int argc, char **argv)
 {
@@ -406,9 +495,10 @@ int main(int argc, char **argv)
 
     print_queue(rpn_queue);
 
-    // evaluate_rpn(rpn_queue);
+    //(evaluate_rpn(rpn_queue);
 
     // free and cleanup stuff
+    free_queue(rpn_queue);
     // free infix_tokens here
     return 0;
 }
