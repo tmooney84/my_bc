@@ -43,6 +43,22 @@ int count_tokens(char *string)
     return token_count;
 }
 
+int find_next_sig_tok(char **tokens, int num_tokens, int idx)
+{
+    while(idx < num_tokens - 2)
+    {
+        if(tokens[idx + 1][0] == ' ')
+        {
+            idx++;
+        }
+        else
+        {
+            break;
+        }
+    }
+    return idx + 1;
+}
+
 int *create_priority_array()
 {
     int *priority = (int *)malloc(NUM_ASCII_CHAR * sizeof(int));
@@ -116,6 +132,13 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
         return NULL;
     }
 
+    //if last token is '-' such as in "1 + 2 * 3 -"
+    if(tokens[num_tokens-1][0] == '-')
+    {
+        parse_error();
+        return NULL;
+    }
+
     Stack *operators_stack = create_stack();
     if (!operators_stack)
     {
@@ -152,6 +175,23 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
             print_queue(rpn_queue);
         }
 
+        // cannot have 2(3+4)
+        if (c >= '0' && c <= '9' && i < num_tokens - 1)
+        {
+            int next_sig_idx = find_next_sig_tok(tokens, num_tokens, i);
+           if(next_sig_idx == -1) 
+            {
+                parse_error();
+                return NULL;
+            }
+            else if(tokens[next_sig_idx][0] == '(')
+            {
+                parse_error();
+                return NULL;
+            }
+
+        }
+
         else if (c == '+' || c == '-' || c == '%' || c == '*' || c == '/' || c == '(' || c == ')')
         {
             printf("top of stack: %s\n", peek(operators_stack));
@@ -170,7 +210,6 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
                     free(priority); 
                     return NULL;
                 }
-
                     printf("top of stack: %s\n", peek(operators_stack));
             }
 
@@ -267,6 +306,25 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
 
     return rpn_queue;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*
     edge cases:
