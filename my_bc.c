@@ -332,10 +332,6 @@ printf("parse error\n");
 
 */
 
-int parse_int(Qnode *node)
-{
-}
-
 void evaluate_rpn(Queue *rpn_queue)
 {
     // create num_stack
@@ -364,7 +360,6 @@ void evaluate_rpn(Queue *rpn_queue)
             Snode *temp2 = pop(num_stack);
             Snode *temp1 = pop(num_stack);
 
-            //**********************NEED TO IMPLEMENT parse_int*********************************/
             int num2 = parse_int(temp2);
             int num1 = parse_int(temp1);
 
@@ -372,7 +367,6 @@ void evaluate_rpn(Queue *rpn_queue)
             {
             case '+':
                 int result = num1 + num2;
-                //************************NEED TO IMPLEMENT int_to_string************/
                 char *s_result = int_to_string(result);
                 push(num_stack, s_result);
                 break;
@@ -415,10 +409,10 @@ void evaluate_rpn(Queue *rpn_queue)
             default:
                 printf("ERROR"); //*********************************???
             }
-                   
-                    free_qnode(op);
-                    free_snode(temp2);
-                    free_snode(temp1);
+
+            free_qnode(op);
+            free_snode(temp2);
+            free_snode(temp1);
         }
     }
 
@@ -427,7 +421,6 @@ void evaluate_rpn(Queue *rpn_queue)
     if (num_stack->head != NULL && num_stack->head->next == NULL)
     {
         Snode *answer_node = pop(num_stack);
-        //**********************NEED TO IMPLEMENT parse_int*********************************/
         int answer = parse_int(answer_node);
         free_snode(answer_node);
         free_stack(num_stack);
