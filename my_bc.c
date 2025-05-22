@@ -351,6 +351,7 @@ void evaluate_rpn(Queue *rpn_queue)
             Qnode *num_node = dequeue(rpn_queue);
             push(num_stack, num_node->token);
             free_qnode(num_node);
+            c = rpn_queue->front->token[0];
         }
 
         // once operator evaluate
