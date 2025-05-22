@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "utils.h"
+#include "stack.h"
 
 void alloc_error()
 {
@@ -56,10 +57,10 @@ char *my_strncpy(char *dst, const char *src, size_t n)
     return dst;
 }
 
-int parse_int(Qnode *node)
+int parse_int(Snode *node)
 {
     int num = 0;
-    char *string = node->token[1];
+    char *string = node->token;
     
     int i = 0;
     for (; string[i] != '-' && string[i] != '\0'; i++)
@@ -89,7 +90,7 @@ char *int_to_string(int num)
         free(string);
         return NULL;
     }
-    memset(string, '\0', PS_SIZE); 
+    my_memset(string, '\0', PS_SIZE); 
 
     while(temp_num != 0 && idx < 126)
     {

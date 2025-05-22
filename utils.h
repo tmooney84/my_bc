@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 #include <stdio.h>
-#include "queue.h"
+#include "stack.h"
 
 #define PS_SIZE 128
 
@@ -12,7 +12,7 @@ char *my_strncpy(char *dst, const char *src, size_t n);
 int my_strcmp(const char *s1, const char *s2);
 void alloc_error();
 void parse_error();
-int parse_int(Qnode *node);
+int parse_int(Snode *node);
 char *int_to_string(int num);
 
 #endif

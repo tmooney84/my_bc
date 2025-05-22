@@ -2,7 +2,6 @@
 #define STACK_H
 
 #include <stdlib.h>
-#include "utils.h"
 
 typedef struct Snode{
     char *token;

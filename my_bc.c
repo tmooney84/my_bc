@@ -339,7 +339,7 @@ void evaluate_rpn(Queue *rpn_queue)
     if (!num_stack)
     {
         alloc_error();
-        return -1;
+        return;
     }
     while (is_q_empty(rpn_queue) == 0)
     {
@@ -362,33 +362,38 @@ void evaluate_rpn(Queue *rpn_queue)
 
             int num2 = parse_int(temp2);
             int num1 = parse_int(temp1);
+            int result = -999;
 
             switch (op->token[0])
             {
             case '+':
-                int result = num1 + num2;
+                result = num1 + num2;
                 char *s_result = int_to_string(result);
                 push(num_stack, s_result);
+                free(s_result); 
                 break;
 
             case '-':
-                int result = num1 - num2;
-                char *s_result = int_to_string(result);
+                result = num1 - num2;
+                s_result = int_to_string(result);
                 push(num_stack, s_result);
+                free(s_result); 
                 break;
             case '*':
-                int result = num1 * num2;
-                char *s_result = int_to_string(result);
+                result = num1 * num2;
+                s_result = int_to_string(result);
                 push(num_stack, s_result);
+                free(s_result); 
                 break;
 
             case '/':
                 // remember divide by zero
                 if (num2 != 0)
                 {
-                    int result = num1 / num2;
-                    char *s_result = int_to_string(result);
+                    result = num1 / num2;
+                    s_result = int_to_string(result);
                     push(num_stack, s_result);
+                    free(s_result); 
                 }
                 else
                 {
@@ -401,9 +406,10 @@ void evaluate_rpn(Queue *rpn_queue)
                 }
                 break;
             case '%':
-                int result = num1 % num2;
-                char *s_result = int_to_string(result);
+                result = num1 % num2;
+                s_result = int_to_string(result);
                 push(num_stack, s_result);
+                free(s_result); 
                 break;
 
             default:
@@ -422,10 +428,12 @@ void evaluate_rpn(Queue *rpn_queue)
     {
         Snode *answer_node = pop(num_stack);
         int answer = parse_int(answer_node);
+        printf("%d\n", answer);
+        
         free_snode(answer_node);
         free_stack(num_stack);
 
-        return answer;
+        return;
     }
     else
     {
@@ -483,12 +491,13 @@ int main(int argc, char **argv)
     Queue *rpn_queue = process_to_rpn(infix_tokens, num_tokens);
     if (rpn_queue == NULL)
     {
+        printf("Error building rpn_queue");
         return -1;
     }
 
     print_queue(rpn_queue);
 
-    //(evaluate_rpn(rpn_queue);
+    evaluate_rpn(rpn_queue);
 
     // free and cleanup stuff
     free_queue(rpn_queue);
