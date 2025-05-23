@@ -294,7 +294,7 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
         if (c >= '0' && c <= '9')
         {
             enqueue(rpn_queue, tokens[i]);
-            print_queue(rpn_queue);
+            //print_queue(rpn_queue);
         }
 
         // cannot have 2(3+4)
@@ -466,7 +466,7 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
                     //!!!printf("top of stack: %s\n", peek(operators_stack));
                 }
             }
-            print_queue(rpn_queue);
+            //print_queue(rpn_queue);
         }
 
         // if (i < num_tokens - 1)
@@ -708,7 +708,7 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    print_queue(rpn_queue);
+    //!!!print_queue(rpn_queue);
 
     evaluate_rpn(rpn_queue);
 
