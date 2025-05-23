@@ -59,14 +59,14 @@ int find_next_sig_tok(char **tokens, int num_tokens, int idx)
     return idx + 1;
 }
 
-void expand_neg_par(char **tokens, int *num_tokens, int idx)
+char **expand_neg_par(char **tokens, int *num_tokens, int idx)
 {
     *num_tokens += 2;
     char **temp_list = malloc(*num_tokens * sizeof(char *));
     if (!temp_list)
     {
         alloc_error();
-        return;
+        return NULL;
     }
     for (int i = 0; i < *num_tokens; i++)
     {
@@ -74,7 +74,7 @@ void expand_neg_par(char **tokens, int *num_tokens, int idx)
         if (!temp_list[i])
         {
             alloc_error();
-            return;
+            return NULL;
         }
     }
 
@@ -87,7 +87,7 @@ void expand_neg_par(char **tokens, int *num_tokens, int idx)
     if (!token1)
     {
         alloc_error();
-        return;
+        return NULL;
     }
     my_memset(token1, '\0', PS_SIZE);
     token1[0] = '+';
@@ -96,7 +96,7 @@ void expand_neg_par(char **tokens, int *num_tokens, int idx)
     if (!token1)
     {
         alloc_error();
-        return;
+        return NULL;
     }
     my_memset(token2, '\0', PS_SIZE);
     token2[0] = '1';
@@ -115,7 +115,7 @@ void expand_neg_par(char **tokens, int *num_tokens, int idx)
     temp_list[j + 1] = token2;
     j += 2;
 
-    for (; j < PS_SIZE && k < PS_SIZE; j++, k++)
+    for (; j < *num_tokens && k < *num_tokens - 2; j++, k++)
     {
         my_strncpy(temp_list[j], tokens[k], PS_SIZE - 1);
     }
@@ -125,11 +125,7 @@ void expand_neg_par(char **tokens, int *num_tokens, int idx)
 
     temp_list = NULL;
 
-    // test printing
-    for (int i = 0; i < *num_tokens; i++)
-    {
-        printf("infix_tokens[%d]: %s\n", i, tokens[i]);
-    }
+    return tokens;
 }
 
 int *create_priority_array()
@@ -278,7 +274,18 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
             // account for '-(' >>> '1 -(2 * 3)' == '1 + -1 *(2 * 3)'
             if (c == '-' && tokens[next_sig_idx][0] == '(')
             {
-                expand_neg_par(tokens, &num_tokens, i);
+                tokens = expand_neg_par(tokens, &num_tokens, i);
+
+                // test printing
+                printf("c before expansion: %c", c);
+
+                for (int i = 0; i < num_tokens; i++)
+                {
+                    printf("returned_infix_tokens[%d]: %s\n", i, tokens[i]);
+                }
+                
+                c = tokens[i][0];
+                printf("c after expansion: %c", c);
             }
         }
 
