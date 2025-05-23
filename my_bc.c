@@ -59,71 +59,124 @@ int find_next_sig_tok(char **tokens, int num_tokens, int idx)
     return idx + 1;
 }
 
-char **expand_neg_par(char **tokens, int *num_tokens, int idx)
+char **build_string_array(int num_strings, int string_size)
 {
-    *num_tokens += 2;
-    char **temp_list = malloc(*num_tokens * sizeof(char *));
-    if (!temp_list)
+    char **array = malloc(num_strings * sizeof(char *));
+    if (!array)
     {
         alloc_error();
         return NULL;
     }
-    for (int i = 0; i < *num_tokens; i++)
+    for (int i = 0; i < num_strings; i++)
     {
-        temp_list[i] = malloc(PS_SIZE * sizeof(char));
-        if (!temp_list[i])
+        array[i] = malloc(string_size * sizeof(char));
+        if (!array[i])
         {
             alloc_error();
             return NULL;
         }
     }
+    return array;
+}
 
-    // account for '-(' >>> '1 -(2 * 3)' == '1 + -1 *(2 * 3)'
-    tokens[idx][0] = '*';
-
-    // then the two tokens before are entered '+' and '1-'
-
-    char *token1 = malloc(PS_SIZE * sizeof(char));
-    if (!token1)
+char **expand_neg_par(char **tokens, int *num_tokens, int idx)
+{
+    //-(4) >>> 1- *(4)  and (-(4)) >>> (1- *(4))
+    if (idx == 0 || tokens[idx - 1][0] == '(')
     {
-        alloc_error();
-        return NULL;
-    }
-    my_memset(token1, '\0', PS_SIZE);
-    token1[0] = '+';
+        *num_tokens += 1;
+        tokens[idx][0] = '1';
+        tokens[idx][1] = '-';
 
-    char *token2 = malloc(PS_SIZE * sizeof(char));
-    if (!token1)
+        char **temp_list = build_string_array(*num_tokens, PS_SIZE);
+        if (!temp_list)
+        {
+            return NULL;
+        }
+
+        char *token1 = malloc(PS_SIZE * sizeof(char));
+        if (!token1)
+        {
+            alloc_error();
+            return NULL;
+        }
+        my_memset(token1, '\0', PS_SIZE);
+        token1[0] = '*';
+
+        int k = 0;
+        int j = 0;
+        for (; j <= idx && j < PS_SIZE - 1 && k < PS_SIZE; j++, k++)
+        {
+            my_strncpy(temp_list[j], tokens[k], PS_SIZE - 1);
+        }
+
+        free(temp_list[j]);
+        temp_list[j] = token1;
+        j += 1;
+
+        for (; j < *num_tokens && k < *num_tokens - 1; j++, k++)
+        {
+            my_strncpy(temp_list[j], tokens[k], PS_SIZE - 1);
+        }
+
+        free_string_array(tokens, *num_tokens - 1);
+        tokens = temp_list;
+        temp_list = NULL;
+    }
+    else
     {
-        alloc_error();
-        return NULL;
+        *num_tokens += 2;
+        // account for '-(' >>> '1 -(2 * 3)' == '1 + -1 *(2 * 3)'
+        tokens[idx][0] = '*';
+
+        char **temp_list = build_string_array(*num_tokens, PS_SIZE);
+        if (!temp_list)
+        {
+            return NULL;
+        }
+
+        // then the two tokens before are entered '+' and '1-'
+        char *token1 = malloc(PS_SIZE * sizeof(char));
+        if (!token1)
+        {
+            alloc_error();
+            return NULL;
+        }
+        my_memset(token1, '\0', PS_SIZE);
+        token1[0] = '+';
+
+        char *token2 = malloc(PS_SIZE * sizeof(char));
+        if (!token1)
+        {
+            alloc_error();
+            return NULL;
+        }
+        my_memset(token2, '\0', PS_SIZE);
+        token2[0] = '1';
+        token2[1] = '-';
+
+        int k = 0;
+        int j = 0;
+        for (; j < idx && j < PS_SIZE - 2 && k < PS_SIZE; j++, k++)
+        {
+            my_strncpy(temp_list[j], tokens[k], PS_SIZE - 1);
+        }
+
+        free(temp_list[j]);
+        free(temp_list[j + 1]);
+        temp_list[j] = token1;
+        temp_list[j + 1] = token2;
+        j += 2;
+
+        for (; j < *num_tokens && k < *num_tokens - 2; j++, k++)
+        {
+            my_strncpy(temp_list[j], tokens[k], PS_SIZE - 1);
+        }
+
+        free_string_array(tokens, *num_tokens - 2);
+        tokens = temp_list;
+        temp_list = NULL;
     }
-    my_memset(token2, '\0', PS_SIZE);
-    token2[0] = '1';
-    token2[1] = '-';
-
-    int k = 0;
-    int j = 0;
-    for (; j < idx && j < PS_SIZE - 2 && k < PS_SIZE; j++, k++)
-    {
-        my_strncpy(temp_list[j], tokens[k], PS_SIZE - 1);
-    }
-
-    free(temp_list[j]);
-    free(temp_list[j + 1]);
-    temp_list[j] = token1;
-    temp_list[j + 1] = token2;
-    j += 2;
-
-    for (; j < *num_tokens && k < *num_tokens - 2; j++, k++)
-    {
-        my_strncpy(temp_list[j], tokens[k], PS_SIZE - 1);
-    }
-
-    free_string_array(tokens, *num_tokens - 2);
-    tokens = temp_list;
-
-    temp_list = NULL;
 
     return tokens;
 }
@@ -283,7 +336,7 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
                 {
                     printf("returned_infix_tokens[%d]: %s\n", i, tokens[i]);
                 }
-                
+
                 c = tokens[i][0];
                 printf("c after expansion: %c", c);
             }
