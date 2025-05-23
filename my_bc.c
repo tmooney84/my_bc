@@ -139,10 +139,6 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
         return NULL;
     }
 
-    // set equal to zero here?
-    int neg_num_flag = 0;
-    int neg_par_flag = 0;
-
     Stack *operators_stack = create_stack();
     if (!operators_stack)
     {
@@ -177,16 +173,6 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
         {
             enqueue(rpn_queue, tokens[i]);
             print_queue(rpn_queue);
-
-            int j = 0;
-            if (neg_num_flag == 1)
-            {
-                while (tokens[i][j++] != '\0' && j < PS_SIZE - 1)
-                {
-                }
-                tokens[i][j] = '-';
-                neg_num_flag = 0;
-            }
         }
 
         // cannot have 2(3+4)
@@ -205,43 +191,40 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
             }
         }
 
-        else if(c == '-' && tokens[i + 1][0] == '(')
+        //*********may need to have the flag logic instead!!!!!
+        //account for '-('
+        if (i < num_tokens - 1)
         {
-            //need to create two new Qnodes for '1-' and '*' 
-            char * token1 = malloc(PS_SIZE * sizeof(char));
-            if (!token1)
+            int next_sig_idx = find_next_sig_tok(tokens, num_tokens, i);
+            if (next_sig_idx == -1)
             {
-                alloc_error();
-                return NULL;
-            }
-            my_strncpy(token1, '1-', PS_SIZE - 1);
-
-            char * token2 = malloc(PS_SIZE * sizeof (char));
-            if (!token2)
-            {
-                alloc_error();
-                return NULL;
-            }
-            my_strncpy(token1, '*', PS_SIZE - 1);
-            
-            Qnode * node1 = create_qnode(token1);
-            if(!node1)
-            {
-                alloc_error();
-                return NULL;
-            }
-            
-            Qnode * node2 = create_qnode(token1);
-            if(!node1)
-            {
-                alloc_error();
+                parse_error();
                 return NULL;
             }
 
-            //then remove the '-' @ tokens[i] and insert those two nodes tokens[i] and tokens[i]->next
+            // need to create two new Qnodes for '1-' and '*'
+            if (c == '-' && tokens[next_sig_idx][0] == '(')
+            {
+                char *token1 = malloc(PS_SIZE * sizeof(char));
+                if (!token1)
+                {
+                    alloc_error();
+                    return NULL;
+                }
+                my_memset(token1, '\0', PS_SIZE);
+
+                my_strncpy(token1, "1-", PS_SIZE - 1);
+
+                // then remove the '-' @ tokens[i] and insert those two nodes tokens[i] and tokens[i]->next
+                enqueue(rpn_queue, token1);
+
+                c = '*';
+
+                free(token1);
+            }
         }
 
-        else if (c == '+' || c == '-' || c == '%' || c == '*' || c == '/' || c == '(' || c == ')')
+        if (c == '+' || c == '-' || c == '%' || c == '*' || c == '/' || c == '(' || c == ')')
         {
             printf("top of stack: %s\n", peek(operators_stack));
 
@@ -260,8 +243,33 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
                     return NULL;
                 }
                 printf("top of stack: %s\n", peek(operators_stack));
-            }
 
+                //*********may need to have the flag logic instead   '1+-4'!!!!!
+                int j = 0;
+                int next_sig_idx = find_next_sig_tok(tokens, num_tokens, i);
+                if (next_sig_idx == -1)
+                {
+                    parse_error();
+                    return NULL;
+                }
+                int n_next_sig_idx = find_next_sig_tok(tokens, num_tokens, next_sig_idx);
+                if (next_sig_idx == -1)
+                {
+                    parse_error();
+                    return NULL;
+                }
+                //accounts for '1+-9'
+                if (i < num_tokens - 2 && tokens[next_sig_idx][0] == '-' && (tokens[n_next_sig_idx][0] >= '0' && tokens[n_next_sig_idx][0] <= '9'))
+                {
+                    while (tokens[i + 2][j] != '\0' && j < PS_SIZE - 1)
+                    {
+                        j++;
+                    }
+                    tokens[i + 2][j] = '-';
+                    enqueue(rpn_queue, tokens[i + 2]);
+                    i += 2;
+                }
+            }
             else
             {
                 char *top = peek(operators_stack);
@@ -329,30 +337,27 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
             print_queue(rpn_queue);
         }
 
-        if (i < num_tokens - 1)
-        {
-            char next_c = tokens[i + 1][0];
-            char next_cc = tokens[i + 2][0];
+        // if (i < num_tokens - 1)
+        // {
+        //     char next_c = tokens[i + 1][0];
+        //     char next_cc = tokens[i + 2][0];
 
-            // with account for '1 + -2' or '4 * -5'
-            if (next_c == '-' && (next_cc >= '0' && next_cc <= '9'))
-            {
-                neg_num_flag = 1;
-                neg_par_flag = 0;
-            }
+        //     // with account for '1 + -2' or '4 * -5'
+        //     if (next_c == '-' && (next_cc >= '0' && next_cc <= '9'))
+        //     {
+        //         neg_par_flag = 0;
+        //     }
 
-            // account for '-(1 + 2)'
-            else if (next_c == '-' && next_cc == '(')
-            {
-                neg_par_flag = 1;
-                neg_num_flag = 0;
-            }
-            else
-            {
-                neg_par_flag = 0;
-                neg_num_flag = 0;
-            }
-        }
+        //     // account for '-(1 + 2)'
+        //     else if (next_c == '-' && next_cc == '(')
+        //     {
+        //         neg_par_flag = 1;
+        //     }
+        //     else
+        //     {
+        //         neg_par_flag = 0;
+        //     }
+        // }
     }
 
     // finish the rest of the stack

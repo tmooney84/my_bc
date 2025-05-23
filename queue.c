@@ -93,13 +93,40 @@ Qnode *dequeue(Queue *q)
 }
 
 
-int add_qnode(Queue *q, Qnode * node, int position)
+void insert_qnode(Queue *q, Qnode *new_node, int position)
 {
+    //**********not sure if it needs to be i < position or i < position - 1  
+    int i = 0;
+    Qnode * iterator = q->front;
+    while(i < position - 1 && iterator != NULL)
+    {
+        iterator = iterator->next;
+        i++;
+    }
 
+    new_node->next = iterator->next;
+    iterator->next = new_node;
+
+    return;
 }
-int delete_qnode(Queue *q, Qnode * node, int position)
-{
 
+void delete_qnode(Queue *q, int position)
+{
+    int i = 0;
+    Qnode *iterator = q->front;
+
+    //**********not sure if it needs to be i < position
+    while(i < position - 1 && iterator != NULL)
+    {
+        iterator = iterator->next;
+        i++;
+    }
+
+    Qnode * temp = iterator->next;
+    iterator->next = iterator->next->next;
+    free_qnode(temp);
+
+    return;
 }
 
 void print_queue(Queue *q)
