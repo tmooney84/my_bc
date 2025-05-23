@@ -59,6 +59,79 @@ int find_next_sig_tok(char **tokens, int num_tokens, int idx)
     return idx + 1;
 }
 
+void expand_neg_par(char **tokens, int *num_tokens, int idx)
+{
+    *num_tokens += 2;
+    char **temp_list = malloc(*num_tokens * sizeof(char *));
+    if (!temp_list)
+    {
+        alloc_error();
+        return;
+    }
+    for (int i = 0; i < *num_tokens; i++)
+    {
+        temp_list[i] = malloc(PS_SIZE * sizeof(char));
+        if (!temp_list[i])
+        {
+            alloc_error();
+            return;
+        }
+    }
+
+    // account for '-(' >>> '1 -(2 * 3)' == '1 + -1 *(2 * 3)'
+    tokens[idx][0] = '*';
+
+    // then the two tokens before are entered '+' and '1-'
+
+    char *token1 = malloc(PS_SIZE * sizeof(char));
+    if (!token1)
+    {
+        alloc_error();
+        return;
+    }
+    my_memset(token1, '\0', PS_SIZE);
+    token1[0] = '+';
+
+    char *token2 = malloc(PS_SIZE * sizeof(char));
+    if (!token1)
+    {
+        alloc_error();
+        return;
+    }
+    my_memset(token2, '\0', PS_SIZE);
+    token2[0] = '1';
+    token2[1] = '-';
+
+    int k = 0;
+    int j = 0;
+    for (; j < idx && j < PS_SIZE - 2 && k < PS_SIZE; j++, k++)
+    {
+        my_strncpy(temp_list[j], tokens[k], PS_SIZE - 1);
+    }
+
+    free(temp_list[j]);
+    free(temp_list[j + 1]);
+    temp_list[j] = token1;
+    temp_list[j + 1] = token2;
+    j += 2;
+
+    for (; j < PS_SIZE && k < PS_SIZE; j++, k++)
+    {
+        my_strncpy(temp_list[j], tokens[k], PS_SIZE - 1);
+    }
+
+    free_string_array(tokens, *num_tokens - 2);
+    tokens = temp_list;
+
+    temp_list = NULL;
+
+    // test printing
+    for (int i = 0; i < *num_tokens; i++)
+    {
+        printf("infix_tokens[%d]: %s\n", i, tokens[i]);
+    }
+}
+
 int *create_priority_array()
 {
     int *priority = (int *)malloc(NUM_ASCII_CHAR * sizeof(int));
@@ -192,8 +265,8 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
         }
 
         //*********may need to have the flag logic instead!!!!!
-        //account for '-('
-        if (i < num_tokens - 1)
+        // account for '-(' >>> '1 -(2 * 3)' == '1 + -1 *(2 * 3)'
+        if (i < num_tokens - 3)
         {
             int next_sig_idx = find_next_sig_tok(tokens, num_tokens, i);
             if (next_sig_idx == -1)
@@ -202,25 +275,10 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
                 return NULL;
             }
 
-            // need to create two new Qnodes for '1-' and '*'
+            // account for '-(' >>> '1 -(2 * 3)' == '1 + -1 *(2 * 3)'
             if (c == '-' && tokens[next_sig_idx][0] == '(')
             {
-                char *token1 = malloc(PS_SIZE * sizeof(char));
-                if (!token1)
-                {
-                    alloc_error();
-                    return NULL;
-                }
-                my_memset(token1, '\0', PS_SIZE);
-
-                my_strncpy(token1, "1-", PS_SIZE - 1);
-
-                // then remove the '-' @ tokens[i] and insert those two nodes tokens[i] and tokens[i]->next
-                enqueue(rpn_queue, token1);
-
-                c = '*';
-
-                free(token1);
+                expand_neg_par(tokens, &num_tokens, i);
             }
         }
 
@@ -230,7 +288,32 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
 
             if (is_s_empty(operators_stack))
             {
-                if (c != ')')
+                int next_sig_idx = find_next_sig_tok(tokens, num_tokens, i);
+                if (next_sig_idx == -1)
+                {
+                    parse_error();
+                    return NULL;
+                }
+                int n_next_sig_idx = find_next_sig_tok(tokens, num_tokens, next_sig_idx);
+                if (n_next_sig_idx == -1)
+                {
+                    parse_error();
+                    return NULL;
+                }
+                if (c == '-' && tokens[next_sig_idx][0] >= '0' && tokens[next_sig_idx][0] <= '9')
+                {
+                    int k = 0;
+                    //***********Create end_num() function
+                    while (tokens[next_sig_idx][k] != '\0' && k < PS_SIZE - 1)
+                    {
+                        k++;
+                    }
+                    tokens[next_sig_idx][k] = '-';
+                    enqueue(rpn_queue, tokens[next_sig_idx]);
+                    i = next_sig_idx;
+                }
+
+                else if (c != ')')
                 {
                     push(operators_stack, tokens[i]);
                 }
@@ -245,22 +328,11 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
                 printf("top of stack: %s\n", peek(operators_stack));
 
                 //*********may need to have the flag logic instead   '1+-4'!!!!!
-                int j = 0;
-                int next_sig_idx = find_next_sig_tok(tokens, num_tokens, i);
-                if (next_sig_idx == -1)
-                {
-                    parse_error();
-                    return NULL;
-                }
-                int n_next_sig_idx = find_next_sig_tok(tokens, num_tokens, next_sig_idx);
-                if (next_sig_idx == -1)
-                {
-                    parse_error();
-                    return NULL;
-                }
-                //accounts for '1+-9'
+
+                // accounts for '1+-9'
                 if (i < num_tokens - 2 && tokens[next_sig_idx][0] == '-' && (tokens[n_next_sig_idx][0] >= '0' && tokens[n_next_sig_idx][0] <= '9'))
                 {
+                    int j = 0;
                     while (tokens[i + 2][j] != '\0' && j < PS_SIZE - 1)
                     {
                         j++;

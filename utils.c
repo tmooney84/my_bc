@@ -41,6 +41,21 @@ void *my_memset(void *str, int c, size_t n)
     return str;
 }
 
+void free_string_array(char **tokens, int num_tokens)
+{
+    if (tokens == NULL)
+    {
+        return;
+    }
+
+    for (int i = 0; i < num_tokens; i++)
+    {
+        free(tokens[i]); 
+    }
+
+    free(tokens);
+}
+
 char *my_strncpy(char *dst, const char *src, size_t n)
 {
     size_t i;
