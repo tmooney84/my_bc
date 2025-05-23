@@ -18,6 +18,8 @@ Qnode *create_qnode(char *token);
 Queue *create_queue();
 int is_q_empty(Queue *q);
 int enqueue(Queue *q, char *new_token);
+int add_qnode(Queue *q, Qnode * node, int position);
+int delete_qnode(Queue *q, Qnode * node, int position);
 Qnode *dequeue(Queue *q);
 void print_queue(Queue *q);
 void free_queue(Queue *q);

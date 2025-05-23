@@ -139,6 +139,10 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
         return NULL;
     }
 
+    // set equal to zero here?
+    int neg_num_flag = 0;
+    int neg_par_flag = 0;
+
     Stack *operators_stack = create_stack();
     if (!operators_stack)
     {
@@ -173,6 +177,16 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
         {
             enqueue(rpn_queue, tokens[i]);
             print_queue(rpn_queue);
+
+            int j = 0;
+            if (neg_num_flag == 1)
+            {
+                while (tokens[i][j++] != '\0' && j < PS_SIZE - 1)
+                {
+                }
+                tokens[i][j] = '-';
+                neg_num_flag = 0;
+            }
         }
 
         // cannot have 2(3+4)
@@ -189,6 +203,42 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
                 parse_error();
                 return NULL;
             }
+        }
+
+        else if(c == '-' && tokens[i + 1][0] == '(')
+        {
+            //need to create two new Qnodes for '1-' and '*' 
+            char * token1 = malloc(PS_SIZE * sizeof(char));
+            if (!token1)
+            {
+                alloc_error();
+                return NULL;
+            }
+            my_strncpy(token1, '1-', PS_SIZE - 1);
+
+            char * token2 = malloc(PS_SIZE * sizeof (char));
+            if (!token2)
+            {
+                alloc_error();
+                return NULL;
+            }
+            my_strncpy(token1, '*', PS_SIZE - 1);
+            
+            Qnode * node1 = create_qnode(token1);
+            if(!node1)
+            {
+                alloc_error();
+                return NULL;
+            }
+            
+            Qnode * node2 = create_qnode(token1);
+            if(!node1)
+            {
+                alloc_error();
+                return NULL;
+            }
+
+            //then remove the '-' @ tokens[i] and insert those two nodes tokens[i] and tokens[i]->next
         }
 
         else if (c == '+' || c == '-' || c == '%' || c == '*' || c == '/' || c == '(' || c == ')')
@@ -277,6 +327,31 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
                 }
             }
             print_queue(rpn_queue);
+        }
+
+        if (i < num_tokens - 1)
+        {
+            char next_c = tokens[i + 1][0];
+            char next_cc = tokens[i + 2][0];
+
+            // with account for '1 + -2' or '4 * -5'
+            if (next_c == '-' && (next_cc >= '0' && next_cc <= '9'))
+            {
+                neg_num_flag = 1;
+                neg_par_flag = 0;
+            }
+
+            // account for '-(1 + 2)'
+            else if (next_c == '-' && next_cc == '(')
+            {
+                neg_par_flag = 1;
+                neg_num_flag = 0;
+            }
+            else
+            {
+                neg_par_flag = 0;
+                neg_num_flag = 0;
+            }
         }
     }
 
@@ -371,20 +446,20 @@ void evaluate_rpn(Queue *rpn_queue)
                 result = num1 + num2;
                 char *s_result = int_to_string(result);
                 push(num_stack, s_result);
-                free(s_result); 
+                free(s_result);
                 break;
 
             case '-':
                 result = num1 - num2;
                 s_result = int_to_string(result);
                 push(num_stack, s_result);
-                free(s_result); 
+                free(s_result);
                 break;
             case '*':
                 result = num1 * num2;
                 s_result = int_to_string(result);
                 push(num_stack, s_result);
-                free(s_result); 
+                free(s_result);
                 break;
 
             case '/':
@@ -394,7 +469,7 @@ void evaluate_rpn(Queue *rpn_queue)
                     result = num1 / num2;
                     s_result = int_to_string(result);
                     push(num_stack, s_result);
-                    free(s_result); 
+                    free(s_result);
                 }
                 else
                 {
@@ -410,7 +485,7 @@ void evaluate_rpn(Queue *rpn_queue)
                 result = num1 % num2;
                 s_result = int_to_string(result);
                 push(num_stack, s_result);
-                free(s_result); 
+                free(s_result);
                 break;
 
             default:
@@ -430,7 +505,7 @@ void evaluate_rpn(Queue *rpn_queue)
         Snode *answer_node = pop(num_stack);
         int answer = parse_int(answer_node);
         printf("%d\n", answer);
-        
+
         free_snode(answer_node);
         free_stack(num_stack);
 

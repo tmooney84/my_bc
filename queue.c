@@ -92,6 +92,16 @@ Qnode *dequeue(Queue *q)
     return temp;
 }
 
+
+int add_qnode(Queue *q, Qnode * node, int position)
+{
+
+}
+int delete_qnode(Queue *q, Qnode * node, int position)
+{
+
+}
+
 void print_queue(Queue *q)
 {
     if (is_q_empty(q))
