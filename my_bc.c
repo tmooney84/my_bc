@@ -267,7 +267,7 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
         alloc_error();
         return NULL;
     }
-    printf("stack status: %d\n", is_s_empty(operators_stack));
+    //!!!printf("stack status: %d\n", is_s_empty(operators_stack));
 
     Queue *rpn_queue = create_queue();
     if (!rpn_queue)
@@ -276,7 +276,7 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
         alloc_error();
         return NULL;
     }
-    printf("queue status: %d\n", is_q_empty(rpn_queue));
+    //!!!printf("queue status: %d\n", is_q_empty(rpn_queue));
 
     int *priority = create_priority_array();
     if (!priority)
@@ -330,21 +330,21 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
                 tokens = expand_neg_par(tokens, &num_tokens, i);
 
                 // test printing
-                printf("c before expansion: %c", c);
+                //!!!printf("c before expansion: %c", c);
 
                 for (int i = 0; i < num_tokens; i++)
                 {
-                    printf("returned_infix_tokens[%d]: %s\n", i, tokens[i]);
+                    //!!!printf("returned_infix_tokens[%d]: %s\n", i, tokens[i]);
                 }
 
                 c = tokens[i][0];
-                printf("c after expansion: %c", c);
+               //!!! printf("c after expansion: %c", c);
             }
         }
 
         if (c == '+' || c == '-' || c == '%' || c == '*' || c == '/' || c == '(' || c == ')')
         {
-            printf("top of stack: %s\n", peek(operators_stack));
+            //!!!printf("top of stack: %s\n", peek(operators_stack));
 
             if (is_s_empty(operators_stack))
             {
@@ -385,7 +385,7 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
                     free(priority);
                     return NULL;
                 }
-                printf("top of stack: %s\n", peek(operators_stack));
+                //!!!printf("top of stack: %s\n", peek(operators_stack));
 
                 //*********may need to have the flag logic instead   '1+-4'!!!!!
 
@@ -463,7 +463,7 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
                     free_snode(t);
 
                     push(operators_stack, tokens[i]);
-                    printf("top of stack: %s\n", peek(operators_stack));
+                    //!!!printf("top of stack: %s\n", peek(operators_stack));
                 }
             }
             print_queue(rpn_queue);
@@ -670,7 +670,7 @@ int main(int argc, char **argv)
     // count number of tokens in string
     int num_tokens = count_tokens(argv[1]);
 
-    printf("Num tokens: %d\n", num_tokens);
+    //!!!printf("Num tokens: %d\n", num_tokens);
 
     // create infix_tokens array
     char **infix_tokens = (char **)malloc(num_tokens * sizeof(char *));
@@ -696,10 +696,10 @@ int main(int argc, char **argv)
     parse_string(argv[1], infix_tokens, num_tokens);
 
     // test printing
-    for (int i = 0; i < num_tokens; i++)
-    {
-        printf("infix_tokens[%d]: %s\n", i, infix_tokens[i]);
-    }
+    // for (int i = 0; i < num_tokens; i++)
+    // {
+    //     //!!!printf("infix_tokens[%d]: %s\n", i, infix_tokens[i]);
+    // }
 
     Queue *rpn_queue = process_to_rpn(infix_tokens, num_tokens);
     if (rpn_queue == NULL)
