@@ -560,7 +560,7 @@ int evaluate_rpn(Queue *rpn_queue)
     if (!num_stack)
     {
         alloc_error();
-        return;
+        return 1;
     }
     while (is_q_empty(rpn_queue) == 0)
     {
@@ -656,13 +656,13 @@ int evaluate_rpn(Queue *rpn_queue)
         free_snode(answer_node);
         free_stack(num_stack);
 
-        return;
+        return 0;
     }
     else
     {
         parse_error();
         free_stack(num_stack);
-        return;
+        return 1;
     }
 
     free_stack(num_stack);
