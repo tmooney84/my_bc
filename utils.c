@@ -10,7 +10,8 @@ void alloc_error()
 
 void parse_error()
 {
-    printf("parse error\n");
+    fprintf(stderr, "parse error\n");
+    exit(1);
 }
 
 int my_strcmp(const char *s1, const char *s2)
