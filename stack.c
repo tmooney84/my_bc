@@ -22,7 +22,6 @@ Snode *create_snode(char *token)
     }
     my_memset(new_node->token, '\0', PS_SIZE);
 
-    ///**** */
     my_strncpy(new_node->token, token, PS_SIZE - 1);
 
     return new_node;

@@ -63,13 +63,15 @@ int enqueue(Queue *q, char *token)
     if (is_q_empty(q))
     {
         q->front = q->rear = new_node;
-        // print_queue(q);
+        //!!! print_queue(q);
+        //print_queue(q);
         return 1;
     }
 
     q->rear->next = new_node;
     q->rear = new_node;
-    // print_queue(q);
+    //!!! print_queue(q);
+    //print_queue(q);
 
     return 1;
 }
