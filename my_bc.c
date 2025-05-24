@@ -723,7 +723,10 @@ int main(int argc, char **argv)
 
     //!!!print_queue(rpn_queue);
 
-    evaluate_rpn(rpn_queue);
+    if(evaluate_rpn(rpn_queue) == 1)
+    {
+        return 1;
+    }
 
     // free and cleanup stuff
     free_queue(rpn_queue);
