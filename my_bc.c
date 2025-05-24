@@ -17,6 +17,11 @@ int count_tokens(char *string)
 
     while (string[i] != '\0')
     {
+        if((string[i] >= 'A' && string[i] <= 'Z') && (string[i] >= 'a' && string[i] <= 'z'))
+        {
+            parse_error();
+        }
+
         if (string[i] == '+' || string[i] == '-' || string[i] == '%' || string[i] == '*' || string[i] == '/' || string[i] == '(' || string[i] == ')')
         {
             token_count++;
