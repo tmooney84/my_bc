@@ -258,7 +258,6 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
     if (tokens[num_tokens - 1][0] == '-')
     {
         parse_error();
-        return NULL;
     }
 
     Stack *operators_stack = create_stack();
@@ -625,7 +624,7 @@ int evaluate_rpn(Queue *rpn_queue)
                     free_snode(temp2);
                     free_snode(temp1);
                     free_stack(num_stack);
-                    return 1;
+                    exit(1);
                 }
                 break;
             case '%':
