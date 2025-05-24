@@ -553,7 +553,7 @@ printf("parse error\n");
 
 */
 
-void evaluate_rpn(Queue *rpn_queue)
+int evaluate_rpn(Queue *rpn_queue)
 {
     // create num_stack
     Stack *num_stack = create_stack();
@@ -625,7 +625,7 @@ void evaluate_rpn(Queue *rpn_queue)
                     free_snode(temp2);
                     free_snode(temp1);
                     free_stack(num_stack);
-                    return;
+                    return 1;
                 }
                 break;
             case '%':
@@ -666,7 +666,7 @@ void evaluate_rpn(Queue *rpn_queue)
     }
 
     free_stack(num_stack);
-    return;
+    return 0;
 }
 
 //int main(int argc, char **argv)
