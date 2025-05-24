@@ -348,6 +348,13 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
 
             if (is_s_empty(operators_stack))
             {
+                char b4c = '\0';
+                
+                if(i > 0)
+                {
+                    b4c = tokens[i -1][0];
+                }
+
                 int next_sig_idx = find_next_sig_tok(tokens, num_tokens, i);
                 if (next_sig_idx == -1)
                 {
@@ -360,7 +367,8 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
                     parse_error();
                     return NULL;
                 }
-                if (c == '-' && tokens[next_sig_idx][0] >= '0' && tokens[next_sig_idx][0] <= '9')
+                if ((b4c == '+' || b4c == '-' || b4c == '%' || b4c == '*' || b4c == '/' || b4c == '(' || b4c == ')')
+                    &&(c == '-' && tokens[next_sig_idx][0] >= '0' && tokens[next_sig_idx][0] <= '9'))
                 {
                     int k = 0;
                     //***********Create end_num() function
