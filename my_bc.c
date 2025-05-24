@@ -367,6 +367,7 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
                     parse_error();
                     return NULL;
                 }
+                //**Trying without to pass testing??? */
                 if ((b4c == '+' || b4c == '-' || b4c == '%' || b4c == '*' || b4c == '/' || b4c == '(' || b4c == ')')
                     &&(c == '-' && tokens[next_sig_idx][0] >= '0' && tokens[next_sig_idx][0] <= '9'))
                 {
@@ -618,7 +619,8 @@ void evaluate_rpn(Queue *rpn_queue)
                 }
                 else
                 {
-                    printf("divide by zero\n");
+                    fprintf(stderr, "divide by zero\n");
+                    
                     free_qnode(op);
                     free_snode(temp2);
                     free_snode(temp1);
