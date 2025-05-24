@@ -660,26 +660,15 @@ void evaluate_rpn(Queue *rpn_queue)
 }
 
 //int main(int argc, char **argv)
-int main(void)
+int main(int argc, char **argv)
 {
-    // if (argc != 2)
-    // {
-    //     printf("Error... incorrect number of arguements. \nEnter mathematical argument in string for evaluation: ./my_bc \"1 + 2 * 3 / 4\"");
-    //     return -1;
-    // }
-
-    char* input = malloc(1024 * sizeof(char));
-    if(!input)
+    if (argc != 2)
     {
-        alloc_error();
+        printf("Error... incorrect number of arguements. \nEnter mathematical argument in string for evaluation: ./my_bc \"1 + 2 * 3 / 4\"");
         return -1;
     }
 
-    if(fgets(input, 1024, stdin) == NULL)
-    {
-        printf("Error reading input\n");
-        return -1;
-    }
+    char* input =  argv[1];
 
     // count number of tokens in string
     int num_tokens = count_tokens(input);
