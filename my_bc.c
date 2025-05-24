@@ -211,6 +211,10 @@ void parse_string(char *string, char **parsed_tokens, int num_tokens)
 
     while (string[i] != '\0' && s_idx < PS_SIZE - 2 && pa_idx < num_tokens)
     {
+        if((string[i] >= 'A' && string[i] <= 'Z') && (string[i] >= 'a' && string[i] <= 'z'))
+        {
+            parse_error();
+        }
         // maybe break up into parentheses and main operators
         if (string[i] == '+' || string[i] == '-' || string[i] == '%' || string[i] == '*' || string[i] == '/' || string[i] == '(' || string[i] == ')')
         {
@@ -289,6 +293,11 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
     for (int i = 0; i < num_tokens; i++)
     {
         char c = tokens[i][0];
+
+        if((c >= 'A' && c <= 'Z') && (c >= 'a' && c <= 'z'))
+        {
+            parse_error();
+        }
 
         if (c >= '0' && c <= '9')
         {
