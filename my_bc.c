@@ -675,13 +675,11 @@ int main(void)
         return -1;
     }
 
-    if(fgets(input, sizeof(input), stdin) == NULL)
+    if(fgets(input, 1024, stdin) == NULL)
     {
         printf("Error reading input\n");
         return -1;
     }
-
-
 
     // count number of tokens in string
     int num_tokens = count_tokens(input);
