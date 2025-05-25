@@ -17,7 +17,7 @@ int count_tokens(char *string)
 
     while (string[i] != '\0')
     {
-        if((string[i] >= 'A' && string[i] <= 'Z') || (string[i] >= 'a' && string[i] <= 'z'))
+        if ((string[i] >= 'A' && string[i] <= 'Z') || (string[i] >= 'a' && string[i] <= 'z'))
         {
             parse_error();
         }
@@ -272,7 +272,7 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
         return NULL;
     }
     //!!!printf("stack status: %d\n", is_s_empty(operators_stack));
-    //printf("stack status: %d\n", is_s_empty(operators_stack));
+    // printf("stack status: %d\n", is_s_empty(operators_stack));
 
     Queue *rpn_queue = create_queue();
     if (!rpn_queue)
@@ -282,7 +282,7 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
         return NULL;
     }
     //!!!printf("queue status: %d\n", is_q_empty(rpn_queue));
-    //printf("queue status: %d\n", is_q_empty(rpn_queue));
+    // printf("queue status: %d\n", is_q_empty(rpn_queue));
 
     int *priority = create_priority_array();
     if (!priority)
@@ -300,7 +300,7 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
         if (c >= '0' && c <= '9')
         {
             enqueue(rpn_queue, tokens[i]);
-            //print_queue(rpn_queue);
+            // print_queue(rpn_queue);
         }
 
         // cannot have 2(3+4)
@@ -337,32 +337,32 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
 
                 // test printing
                 //!!!printf("c before expansion: %c", c);
-                //printf("c before expansion: %c", c);
+                // printf("c before expansion: %c", c);
 
                 for (int i = 0; i < num_tokens; i++)
                 {
                     //!!!printf("returned_infix_tokens[%d]: %s\n", i, tokens[i]);
-                    //printf("returned_infix_tokens[%d]: %s\n", i, tokens[i]);
+                    // printf("returned_infix_tokens[%d]: %s\n", i, tokens[i]);
                 }
 
                 c = tokens[i][0];
-               //!!! printf("c after expansion: %c", c);
-               //printf("c after expansion: %c", c);
+                //!!! printf("c after expansion: %c", c);
+                // printf("c after expansion: %c", c);
             }
         }
 
         if (c == '+' || c == '-' || c == '%' || c == '*' || c == '/' || c == '(' || c == ')')
         {
             //!!!printf("top of stack: %s\n", peek(operators_stack));
-            //printf("top of stack: %s\n", peek(operators_stack));
+            // printf("top of stack: %s\n", peek(operators_stack));
 
             if (is_s_empty(operators_stack))
             {
                 char b4c = '\0';
-                
-                if(i > 0)
+
+                if (i > 0)
                 {
-                    b4c = tokens[i -1][0];
+                    b4c = tokens[i - 1][0];
                 }
 
                 int next_sig_idx = find_next_sig_tok(tokens, num_tokens, i);
@@ -378,8 +378,7 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
                     return NULL;
                 }
                 //**Trying without to pass testing??? */
-                if ((b4c == '+' || b4c == '-' || b4c == '%' || b4c == '*' || b4c == '/' || b4c == '(' || b4c == ')')
-                    &&(c == '-' && tokens[next_sig_idx][0] >= '0' && tokens[next_sig_idx][0] <= '9'))
+                if ((b4c == '+' || b4c == '-' || b4c == '%' || b4c == '*' || b4c == '/' || b4c == '(' || b4c == ')') && (c == '-' && tokens[next_sig_idx][0] >= '0' && tokens[next_sig_idx][0] <= '9'))
                 {
                     int k = 0;
                     //***********Create end_num() function
@@ -405,7 +404,7 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
                     return NULL;
                 }
                 //!!!printf("top of stack: %s\n", peek(operators_stack));
-                //printf("top of stack: %s\n", peek(operators_stack));
+                // printf("top of stack: %s\n", peek(operators_stack));
 
                 //*********may need to have the flag logic instead   '1+-4'!!!!!
 
@@ -484,10 +483,10 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
 
                     push(operators_stack, tokens[i]);
                     //!!!printf("top of stack: %s\n", peek(operators_stack));
-                    //printf("top of stack: %s\n", peek(operators_stack));
+                    // printf("top of stack: %s\n", peek(operators_stack));
                 }
             }
-            //print_queue(rpn_queue);
+            // print_queue(rpn_queue);
         }
 
         // if (i < num_tokens - 1)
@@ -591,12 +590,12 @@ int evaluate_rpn(Queue *rpn_queue)
         if (c == '+' || c == '-' || c == '%' || c == '*' || c == '/')
         {
             Qnode *op = dequeue(rpn_queue);
-            if(is_s_empty(num_stack))
+            if (is_s_empty(num_stack))
             {
                 parse_error();
             }
             Snode *temp2 = pop(num_stack);
-            if(is_s_empty(num_stack))
+            if (is_s_empty(num_stack))
             {
                 parse_error();
             }
@@ -640,7 +639,7 @@ int evaluate_rpn(Queue *rpn_queue)
                 else
                 {
                     fprintf(stderr, "divide by zero\n");
-                    
+
                     free_qnode(op);
                     free_snode(temp2);
                     free_snode(temp1);
@@ -689,7 +688,7 @@ int evaluate_rpn(Queue *rpn_queue)
     return 0;
 }
 
-//int main(int argc, char **argv)
+// int main(int argc, char **argv)
 int main(int argc, char **argv)
 {
     if (argc != 2)
@@ -698,13 +697,31 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    char* input =  argv[1];
+    char *input = argv[1];
 
     // count number of tokens in string
     int num_tokens = count_tokens(input);
 
+    if (num_tokens == 1)
+    {
+        int i = 0;
+
+        while (input[i] != '\0')
+        {
+            if ((input[i] >= 'a' && input[i] <= 'z') || (input[i] >= 'A' && input[i] <= 'Z'))
+            {
+                parse_error();
+            }
+
+            i++;
+        }
+        int num = parse_str_int(input);
+        printf("%d\n", num);
+        return 0;
+    }
+
     //!!!printf("Num tokens: %d\n", num_tokens);
-    //printf("Num tokens: %d\n", num_tokens);
+    // printf("Num tokens: %d\n", num_tokens);
 
     // create infix_tokens array
     char **infix_tokens = (char **)malloc(num_tokens * sizeof(char *));
@@ -729,11 +746,11 @@ int main(int argc, char **argv)
     // need to parse input string into array of tokens
     parse_string(input, infix_tokens, num_tokens);
 
-    //test printing
+    // test printing
     for (int i = 0; i < num_tokens; i++)
     {
         //!!!printf("infix_tokens[%d]: %s\n", i, infix_tokens[i]);
-        //printf("infix_tokens[%d]: %s\n", i, infix_tokens[i]);
+        // printf("infix_tokens[%d]: %s\n", i, infix_tokens[i]);
     }
 
     Queue *rpn_queue = process_to_rpn(infix_tokens, num_tokens);
@@ -744,9 +761,9 @@ int main(int argc, char **argv)
     }
 
     //!!!print_queue(rpn_queue);
-    //print_queue(rpn_queue);
+    // print_queue(rpn_queue);
 
-    if(evaluate_rpn(rpn_queue) == 1)
+    if (evaluate_rpn(rpn_queue) == 1)
     {
         return 1;
     }

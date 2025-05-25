@@ -94,6 +94,26 @@ int parse_int(Snode *node)
     }
 }
 
+int parse_str_int(char *string)
+{
+    int num = 0;
+    
+    int i = 0;
+    for (; string[i] != '-' && string[i] != '\0'; i++)
+    {
+        num = num * 10 + (string[i] - '0');
+    }
+
+    if (string[i] == '-')
+    {
+        return -1 * num;
+    }
+    else
+    {
+        return num;
+    }
+}
+
 char *int_to_string(int num)
 {
     int neg_flag = 0;

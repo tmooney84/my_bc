@@ -15,5 +15,6 @@ void alloc_error();
 void parse_error();
 int parse_int(Snode *node);
 char *int_to_string(int num);
+int parse_str_int(char *string);
 
 #endif
