@@ -14,6 +14,19 @@ void parse_error()
     exit(1);
 }
 
+int is_num(char c) 
+{
+    return c >= '0' && c <= '9';
+}
+int is_alpha(char c)
+{
+    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+} 
+int is_op(char c)
+{
+    return c == '+' || c == '-' || c == '%' || c == '*' || c == '/' || c == '(' || c == ')';
+}
+
 int my_strcmp(const char *s1, const char *s2)
 {
     for (int i = 0; s1[i] != '\0' || s2[i] != '\0'; i++)

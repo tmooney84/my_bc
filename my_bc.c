@@ -10,14 +10,6 @@
 #define PS_SIZE 128
 #define NUM_ASCII_CHAR 128
 
-
-/*
-!!!***CREATE 
-is_num() 
-is_alpha() 
-is_op() 
-*/
-
 int count_tokens(char *string)
 {
     int token_count = 0;
@@ -25,22 +17,25 @@ int count_tokens(char *string)
 
     while (string[i] != '\0')
     {
-        if ((string[i] >= 'A' && string[i] <= 'Z') || (string[i] >= 'a' && string[i] <= 'z'))
+        //if ((string[i] >= 'A' && string[i] <= 'Z') || (string[i] >= 'a' && string[i] <= 'z'))
+        if(is_alpha(string[i])) 
         {
             parse_error();
         }
 
-        if (string[i] == '+' || string[i] == '-' || string[i] == '%' || string[i] == '*' || string[i] == '/' || string[i] == '(' || string[i] == ')')
+        //if (string[i] == '+' || string[i] == '-' || string[i] == '%' || string[i] == '*' || string[i] == '/' || string[i] == '(' || string[i] == ')')
+        if(is_op(string[i])) 
         {
             token_count++;
             i++;
         }
 
-        else if (string[i] >= '0' && string[i] <= '9')
+        //else if (string[i] >= '0' && string[i] <= '9')
+        else if(is_num(string[i])) 
         {
             i++;
 
-            while (string[i] >= '0' && string[i] <= '9' && i < PS_SIZE - 2)
+            while (is_num(string[i]) && i < PS_SIZE - 2)
             {
                 i++;
             }
@@ -225,7 +220,7 @@ void parse_string(char *string, char **parsed_tokens, int num_tokens)
     while (string[i] != '\0' && s_idx < PS_SIZE - 2 && pa_idx < num_tokens)
     {
         // maybe break up into parentheses and main operators
-        if (string[i] == '+' || string[i] == '-' || string[i] == '%' || string[i] == '*' || string[i] == '/' || string[i] == '(' || string[i] == ')')
+        if (is_op(string[i]))
         {
             parsed_tokens[pa_idx][0] = string[i];
             parsed_tokens[pa_idx][1] = '\0';
@@ -233,13 +228,13 @@ void parse_string(char *string, char **parsed_tokens, int num_tokens)
             i++;
             s_idx = 0;
         }
-        else if (string[i] >= '0' && string[i] <= '9')
+        else if (is_num(string[i]))
         {
             parsed_tokens[pa_idx][s_idx] = string[i];
             s_idx++;
             i++;
 
-            while (string[i] >= '0' && string[i] <= '9')
+            while (is_num(string[i]))
             {
                 parsed_tokens[pa_idx][s_idx] = string[i];
                 s_idx++;
@@ -312,7 +307,7 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
         }
 
         // cannot have 2(3+4)
-        if (c >= '0' && c <= '9' && i < num_tokens - 1)
+        if (is_num(c) && i < num_tokens - 1)
         {
             int next_sig_idx = find_next_sig_tok(tokens, num_tokens, i);
             if (next_sig_idx == -1)
@@ -359,7 +354,7 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
             }
         }
 
-        if (c == '+' || c == '-' || c == '%' || c == '*' || c == '/' || c == '(' || c == ')')
+        if (is_op(c))
         {
             //!!!printf("top of stack: %s\n", peek(operators_stack));
             //printf("top of stack: %s\n", peek(operators_stack));
@@ -386,7 +381,7 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
                     return NULL;
                 }
                 //**Trying without to pass testing??? */
-                if ((b4c == '+' || b4c == '-' || b4c == '%' || b4c == '*' || b4c == '/' || b4c == '(' || b4c == ')') && (c == '-' && tokens[next_sig_idx][0] >= '0' && tokens[next_sig_idx][0] <= '9'))
+                if (is_op(b4c) && (c == '-' && is_num(tokens[next_sig_idx][0])))
                 {
                     int k = 0;
                     //***********Create end_num() function
@@ -417,7 +412,7 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
                 //*********may need to have the flag logic instead   '1+-4'!!!!!
 
                 // accounts for '1+-9'
-                if (i < num_tokens - 2 && tokens[next_sig_idx][0] == '-' && (tokens[n_next_sig_idx][0] >= '0' && tokens[n_next_sig_idx][0] <= '9'))
+                if (i < num_tokens - 2 && tokens[next_sig_idx][0] == '-' && is_num(tokens[n_next_sig_idx][0]))
                 {
                     int j = 0;
                     while (tokens[i + 2][j] != '\0' && j < PS_SIZE - 1)
@@ -498,31 +493,10 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
             //!!! print_queue(rpn_queue);
             //print_queue(rpn_queue);
         }
-
-        // if (i < num_tokens - 1)
-        // {
-        //     char next_c = tokens[i + 1][0];
-        //     char next_cc = tokens[i + 2][0];
-
-        //     // with account for '1 + -2' or '4 * -5'
-        //     if (next_c == '-' && (next_cc >= '0' && next_cc <= '9'))
-        //     {
-        //         neg_par_flag = 0;
-        //     }
-
-        //     // account for '-(1 + 2)'
-        //     else if (next_c == '-' && next_cc == '(')
-        //     {
-        //         neg_par_flag = 1;
-        //     }
-        //     else
-        //     {
-        //         neg_par_flag = 0;
-        //     }
-        // }
     }
-
+    
     // finish the rest of the stack
+    //!!!finish_stack_eval()
     while (!is_s_empty(operators_stack))
     {
         Snode *top = pop(operators_stack);
@@ -547,32 +521,6 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
 
     return rpn_queue;
 }
-
-/*
-    edge cases:
-    Example 00
-    $>./my_bc "312/0"
-    divide by zero
-    $>
-    Example 01
-    $>./my_bc "321()"
-    parse error
-    $>
-    Example 02
-    $>./my_bc "-(-((-4)+-6))"
-    -10
-    $>
-
-    */
-
-/*
-edge case examples:
-if 1 and - are left, should have that evaluate just the right value
-
-printf("divide by zero\n");
-printf("parse error\n");
-
-*/
 
 int evaluate_rpn(Queue *rpn_queue)
 {

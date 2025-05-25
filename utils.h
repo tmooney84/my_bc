@@ -16,5 +16,8 @@ void parse_error();
 int parse_int(Snode *node);
 char *int_to_string(int num);
 int parse_str_int(char *string);
+int is_num(char c);
+int is_alpha(char c);
+int is_op(char c);
 
 #endif
