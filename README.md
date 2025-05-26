@@ -2,7 +2,7 @@
 ***
 
 ## Task
-my_bc is a basic calculator by evaluating infix mathematical expressions using the shunting yard algorithm and Reverse Polish Notation.
+my_bc is a basic calculator that evaluates infix mathematical expressions using the shunting yard algorithm and Reverse Polish Notation.
 
 ## Description
 This program breaks up the logic into two distinct parts. The first task is to translate infix notation into Reverse Polish Notation, and the second is to then evaluate the Reverse Polish Notation. Both steps are accomplished using stacks and queues.
