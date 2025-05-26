@@ -267,70 +267,135 @@ int finish_stack_eval(Stack *operators_stack, Queue *rpn_queue)
         free_snode(top);
     }
 
-        return 0;
+    return 0;
 }
 
-
 int eval_empty_stack(Stack *operators_stack, Queue *rpn_queue, char **tokens, int num_tokens, char c, int *i)
-                {
-                char b4c = '\0';
+{
+    char b4c = '\0';
 
-                if (*i > 0)
-                {
-                    b4c = tokens[*i - 1][0];
-                }
+    if (*i > 0)
+    {
+        b4c = tokens[*i - 1][0];
+    }
 
-                int next_sig_idx = find_next_sig_tok(tokens, num_tokens, *i);
-                if (next_sig_idx == -1)
-                {
-                    parse_error();
-                    return -1;
-                }
-                int n_next_sig_idx = find_next_sig_tok(tokens, num_tokens, next_sig_idx);
-                if (n_next_sig_idx == -1)
-                {
-                    parse_error();
-                    return -1;
-                }
-                if (is_op(b4c) && (c == '-' && is_num(tokens[next_sig_idx][0])))
-                {
-                    int k = 0;
-                    //***********Create end_num() function
-                    while (tokens[next_sig_idx][k] != '\0' && k < PS_SIZE - 1)
-                    {
-                        k++;
-                    }
-                    tokens[next_sig_idx][k] = '-';
-                    enqueue(rpn_queue, tokens[next_sig_idx]);
-                    *i = next_sig_idx;
-                }
+    int next_sig_idx = find_next_sig_tok(tokens, num_tokens, *i);
+    if (next_sig_idx == -1)
+    {
+        parse_error();
+        return -1;
+    }
+    int n_next_sig_idx = find_next_sig_tok(tokens, num_tokens, next_sig_idx);
+    if (n_next_sig_idx == -1)
+    {
+        parse_error();
+        return -1;
+    }
+    if (is_op(b4c) && (c == '-' && is_num(tokens[next_sig_idx][0])))
+    {
+        int k = 0;
+        //***********Create end_num() function
+        while (tokens[next_sig_idx][k] != '\0' && k < PS_SIZE - 1)
+        {
+            k++;
+        }
+        tokens[next_sig_idx][k] = '-';
+        enqueue(rpn_queue, tokens[next_sig_idx]);
+        *i = next_sig_idx;
+    }
 
-                else if (c != ')')
-                {
-                    push(operators_stack, tokens[*i]);
-                }
-                else
-                {
-                    parse_error();
-                    free_stack(operators_stack);
-                    free_queue(rpn_queue);
-                    return -1;
-                }
+    else if (c != ')')
+    {
+        push(operators_stack, tokens[*i]);
+    }
+    else
+    {
+        parse_error();
+        free_stack(operators_stack);
+        free_queue(rpn_queue);
+        return -1;
+    }
 
-                // accounts for '1+-9'
-                if (*i < num_tokens - 2 && tokens[next_sig_idx][0] == '-' && is_num(tokens[n_next_sig_idx][0]))
-                {
-                    int j = 0;
-                    while (tokens[*i + 2][j] != '\0' && j < PS_SIZE - 1)
-                    {
-                        j++;
-                    }
-                    tokens[*i + 2][j] = '-';
-                    enqueue(rpn_queue, tokens[*i + 2]);
-                    *i += 2;
-                } 
-                    return 0;
-                }
+    // accounts for '1+-9'
+    if (*i < num_tokens - 2 && tokens[next_sig_idx][0] == '-' && is_num(tokens[n_next_sig_idx][0]))
+    {
+        int j = 0;
+        while (tokens[*i + 2][j] != '\0' && j < PS_SIZE - 1)
+        {
+            j++;
+        }
+        tokens[*i + 2][j] = '-';
+        enqueue(rpn_queue, tokens[*i + 2]);
+        *i += 2;
+    }
+    return 0;
+}
+
+int eval_full_stack(Stack *operators_stack, Queue *rpn_queue, int *priority, char **tokens, char c, int i)
+{
+    char *top = peek(operators_stack);
+    char top_op = top[0];
+
+    // cannot have "()" with no contents inside or ")("
+    if ((top_op == '(' && c == ')') || (top_op == ')' && c == '('))
+    {
+        parse_error();
+        free_stack(operators_stack);
+        free_queue(rpn_queue);
+        free(priority);
+        return -1;
+    }
+    else if (c == '(')
+    {
+        push(operators_stack, tokens[i]);
+    }
+
+    // pop stack to queue until '(' reached
+    else if (c == ')')
+    {
+        Snode *top = pop(operators_stack);
+        char *popped_top = top->token;
+
+        // run until '(' found, if not found, parse error
+        while (popped_top[0] != '(')
+        {
+            enqueue(rpn_queue, popped_top);
+            if (is_s_empty(operators_stack))
+            {
+                parse_error();
+                free_stack(operators_stack);
+                free_queue(rpn_queue);
+                free(priority);
+                return -1;
+            }
+            // free popped node
+            free_snode(top);
+
+            top = pop(operators_stack);
+            popped_top = top->token;
+        }
+
+        // free top to get rid of bottom '('
+        free_snode(top);
+    }
+
+    // current operator of greater precedence
+    else if (priority[(int)c] > priority[(int)top_op])
+    {
+
+        push(operators_stack, tokens[i]);
+    }
+    // current operator of lower precedence
+    else if (priority[(int)c] <= priority[(int)top_op])
+    {
+        Snode *t = pop(operators_stack);
+        enqueue(rpn_queue, t->token);
+        free_snode(t);
+
+        push(operators_stack, tokens[i]);
+    }
+    return 0;
+}
 
 Queue *process_to_rpn(char **tokens, int num_tokens)
 {
@@ -352,8 +417,6 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
         alloc_error();
         return NULL;
     }
-    //!!!printf("stack status: %d\n", is_s_empty(operators_stack));
-    // printf("stack status: %d\n", is_s_empty(operators_stack));
 
     Queue *rpn_queue = create_queue();
     if (!rpn_queue)
@@ -362,8 +425,6 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
         alloc_error();
         return NULL;
     }
-    //!!!printf("queue status: %d\n", is_q_empty(rpn_queue));
-    // printf("queue status: %d\n", is_q_empty(rpn_queue));
 
     int *priority = create_priority_array();
     if (!priority)
@@ -421,49 +482,24 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
         {
             if (is_s_empty(operators_stack))
             {
-                if(eval_empty_stack(operators_stack, rpn_queue, tokens, num_tokens, c, &i) < 0)
-                {   
+                if (eval_empty_stack(operators_stack, rpn_queue, tokens, num_tokens, c, &i) < 0)
+                {
                     free(priority);
-                    return NULL; 
+                    return NULL;
                 }
+            }
+            else
+            {
 
-                // char b4c = '\0';
+            if(eval_full_stack(operators_stack, rpn_queue, priority, tokens, c, i) < 0)
+            {
+                return NULL;
+            }
+                // char *top = peek(operators_stack);
+                // char top_op = top[0];
 
-                // if (i > 0)
-                // {
-                //     b4c = tokens[i - 1][0];
-                // }
-
-                // int next_sig_idx = find_next_sig_tok(tokens, num_tokens, i);
-                // if (next_sig_idx == -1)
-                // {
-                //     parse_error();
-                //     return NULL;
-                // }
-                // int n_next_sig_idx = find_next_sig_tok(tokens, num_tokens, next_sig_idx);
-                // if (n_next_sig_idx == -1)
-                // {
-                //     parse_error();
-                //     return NULL;
-                // }
-                // if (is_op(b4c) && (c == '-' && is_num(tokens[next_sig_idx][0])))
-                // {
-                //     int k = 0;
-                //     //***********Create end_num() function
-                //     while (tokens[next_sig_idx][k] != '\0' && k < PS_SIZE - 1)
-                //     {
-                //         k++;
-                //     }
-                //     tokens[next_sig_idx][k] = '-';
-                //     enqueue(rpn_queue, tokens[next_sig_idx]);
-                //     i = next_sig_idx;
-                // }
-
-                // else if (c != ')')
-                // {
-                //     push(operators_stack, tokens[i]);
-                // }
-                // else
+                // // cannot have "()" with no contents inside or ")("
+                // if ((top_op == '(' && c == ')') || (top_op == ')' && c == '('))
                 // {
                 //     parse_error();
                 //     free_stack(operators_stack);
@@ -471,92 +507,60 @@ Queue *process_to_rpn(char **tokens, int num_tokens)
                 //     free(priority);
                 //     return NULL;
                 // }
-
-                // // accounts for '1+-9'
-                // if (i < num_tokens - 2 && tokens[next_sig_idx][0] == '-' && is_num(tokens[n_next_sig_idx][0]))
+                // else if (c == '(')
                 // {
-                //     int j = 0;
-                //     while (tokens[i + 2][j] != '\0' && j < PS_SIZE - 1)
+                //     push(operators_stack, tokens[i]);
+                // }
+
+                // // pop stack to queue until '(' reached
+                // else if (c == ')')
+                // {
+                //     Snode *top = pop(operators_stack);
+                //     char *popped_top = top->token;
+
+                //     // run until '(' found, if not found, parse error
+                //     while (popped_top[0] != '(')
                 //     {
-                //         j++;
+                //         enqueue(rpn_queue, popped_top);
+                //         if (is_s_empty(operators_stack))
+                //         {
+                //             parse_error();
+                //             free_stack(operators_stack);
+                //             free_queue(rpn_queue);
+                //             free(priority);
+                //             return NULL;
+                //         }
+                //         // free popped node
+                //         free_snode(top);
+
+                //         top = pop(operators_stack);
+                //         popped_top = top->token;
                 //     }
-                //     tokens[i + 2][j] = '-';
-                //     enqueue(rpn_queue, tokens[i + 2]);
-                //     i += 2;
+
+                //     // free top to get rid of bottom '('
+                //     free_snode(top);
+                // }
+
+                // // current operator of greater precedence
+                // else if (priority[(int)c] > priority[(int)top_op])
+                // {
+
+                //     push(operators_stack, tokens[i]);
+                // }
+                // // current operator of lower precedence
+                // else if (priority[(int)c] <= priority[(int)top_op])
+                // {
+                //     Snode *t = pop(operators_stack);
+                //     enqueue(rpn_queue, t->token);
+                //     free_snode(t);
+
+                //     push(operators_stack, tokens[i]);
                 // }
             }
-            else
-            {
-                char *top = peek(operators_stack);
-                char top_op = top[0];
-
-                // cannot have "()" with no contents inside or ")("
-                if ((top_op == '(' && c == ')') || (top_op == ')' && c == '('))
-                {
-                    parse_error();
-                    free_stack(operators_stack);
-                    free_queue(rpn_queue);
-                    free(priority);
-                    return NULL;
-                }
-                else if (c == '(')
-                {
-                    push(operators_stack, tokens[i]);
-                }
-
-                // pop stack to queue until '(' reached
-                else if (c == ')')
-                {
-                    Snode *top = pop(operators_stack);
-                    char *popped_top = top->token;
-
-                    // run until '(' found, if not found, parse error
-                    while (popped_top[0] != '(')
-                    {
-                        enqueue(rpn_queue, popped_top);
-                        if (is_s_empty(operators_stack))
-                        {
-                            parse_error();
-                            free_stack(operators_stack);
-                            free_queue(rpn_queue);
-                            free(priority);
-                            return NULL;
-                        }
-                        // free popped node
-                        free_snode(top);
-
-                        top = pop(operators_stack);
-                        popped_top = top->token;
-                    }
-
-                    // free top to get rid of bottom '('
-                    free_snode(top);
-                }
-
-                // current operator of greater precedence
-                else if (priority[(int)c] > priority[(int)top_op])
-                {
-
-                    push(operators_stack, tokens[i]);
-                }
-                // current operator of lower precedence
-                else if (priority[(int)c] <= priority[(int)top_op])
-                {
-                    Snode *t = pop(operators_stack);
-                    enqueue(rpn_queue, t->token);
-                    free_snode(t);
-
-                    push(operators_stack, tokens[i]);
-                    //!!!printf("top of stack: %s\n", peek(operators_stack));
-                    // printf("top of stack: %s\n", peek(operators_stack));
-                }
-            }
-            //!!! print_queue(rpn_queue);
-            // print_queue(rpn_queue);
         }
     }
 
-    if(finish_stack_eval(operators_stack, rpn_queue) < 0)
+    if (finish_stack_eval(operators_stack, rpn_queue) < 0)
     {
         free(priority);
         return NULL;
