@@ -63,15 +63,11 @@ int enqueue(Queue *q, char *token)
     if (is_q_empty(q))
     {
         q->front = q->rear = new_node;
-        //!!! print_queue(q);
-        //print_queue(q);
         return 1;
     }
 
     q->rear->next = new_node;
     q->rear = new_node;
-    //!!! print_queue(q);
-    //print_queue(q);
 
     return 1;
 }
@@ -97,7 +93,6 @@ Qnode *dequeue(Queue *q)
 
 void insert_qnode(Queue *q, Qnode *new_node, int position)
 {
-    //**********not sure if it needs to be i < position or i < position - 1  
     int i = 0;
     Qnode * iterator = q->front;
     while(i < position - 1 && iterator != NULL)
@@ -117,7 +112,6 @@ void delete_qnode(Queue *q, int position)
     int i = 0;
     Qnode *iterator = q->front;
 
-    //**********not sure if it needs to be i < position
     while(i < position - 1 && iterator != NULL)
     {
         iterator = iterator->next;
